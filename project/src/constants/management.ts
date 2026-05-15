@@ -1,0 +1,37 @@
+export const MGMT: Record<number, string[]> = {
+  1: [
+    "CALL FOR HELP immediately — alert duty doctor and charge midwife",
+    "Position patient left lateral; protect airway",
+    "Administer O₂ 10–15 L/min via non-rebreather mask (target SpO₂ >95%)",
+    "Establish TWO large-bore IV lines (14–16G); draw FBC, LFTs, coagulation, U&E",
+    "MgSO₄ loading dose: 4g IV over 15–20 min in 200ml NaCl 0.9%",
+    "If BP ≥160/110: Nifedipine 10mg PO; repeat after 30 min if needed",
+    "Insert Foley catheter; hourly urine output monitoring",
+    "Transfer to labour ward / high-care IMMEDIATELY — do not leave patient alone",
+    "Prepare resuscitation trolley; summon neonatologist if delivery imminent",
+  ],
+  2: [
+    "Notify advanced midwife / duty doctor within 10 minutes",
+    "IV access; restricted fluids (Ringer's Lactate 80 ml/hr unless contraindicated)",
+    "Continuous CTG; document FHR baseline and variability",
+    "Commence oral antihypertensive if BP 150–159/100–109 per protocol",
+    "MgSO₄ prophylaxis as indicated by clinical picture",
+    "Prepare theatre if obstetric emergency anticipated",
+    "Reassess every 10 min; escalate to P1 if deterioration",
+  ],
+  3: [
+    "Place patient in designated waiting area (≤ 30 min wait)",
+    "Record full vital signs; repeat in 15 minutes",
+    "Non-pharmacological comfort measures (positioning, breathing exercises)",
+    "Continue prescribed antihypertensives; manage blood glucose if diabetic",
+    "Flag for early medical officer review of risk factors",
+    "Re-triage immediately if clinical status changes",
+  ],
+  4: [
+    "Direct to waiting area (up to 1 hour wait)",
+    "Routine observations on arrival",
+    "Assess presenting complaint; advise on warning signs for urgent review",
+    "Medical officer may down-refer after comprehensive assessment",
+    "Provide written information leaflet on when to return",
+  ],
+};

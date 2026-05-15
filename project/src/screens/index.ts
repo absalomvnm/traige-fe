@@ -1,0 +1,9 @@
+export { SplashScreen } from "./SplashScreen";
+export { RegisterScreen } from "./RegisterScreen";
+export { WelcomeScreen } from "./WelcomeScreen";
+export { TriageScreen } from "./TriageScreen";
+export { ResultScreen } from "./ResultScreen";
+export { PatientsScreen } from "./PatientsScreen";
+export { PatientDetailsScreen } from "./PatientDetailsScreen";
+export { AlertsScreen } from "./AlertsScreen";
+export { AboutScreen } from "./AboutScreen";
