@@ -74,6 +74,10 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
     String(currentUser?.role || "").trim() ||
     "Midwife";
 
+    const displayHospital =
+    String(currentUser?.hospital || "").trim() ||
+    "-";
+
   const handleAccept = () => {
     acceptDisclaimer();
     setShowDisclaimer(false);
@@ -89,7 +93,7 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
           <div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,.65)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Welcome back</div>
             <div style={{ fontSize: 23, fontWeight: 900, color: "white", marginTop: 3, letterSpacing: "-.02em" }}>{displayName}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.7)", marginTop: 3, fontWeight: 500 }}>{displayRole} · KZN Maternity Unit</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.7)", marginTop: 3, fontWeight: 500 }}>{displayRole} · {displayHospital}</div>
           </div>
         </div>
         <div style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginTop: 10, fontWeight: 500 }}>{today}</div>

@@ -17,6 +17,15 @@ export interface RegisterRequest {
   confirmPassword: string;
 }
 
+export interface UpdateProfileRequest {
+  fullName: string;
+  email: string;
+  phone: string;
+  role: string;
+  hospital: string;
+  sancNr: string;
+}
+
 export interface AuthUser {
   id?: string | number;
   email?: string;
@@ -52,6 +61,17 @@ export interface HealthResponse {
   [key: string]: unknown;
 }
 
+export interface UpdateProfileResponse {
+  id?: string | number;
+  fullName?: string;
+  email?: string;
+  role?: string;
+  phone?: string;
+  hospital?: string;
+  sancNr?: string;
+  message?: string;
+}
+
 export const authApi = {
   login(payload: LoginRequest) {
     return apiRequest<LoginResponse>("/api/auth/login", {
@@ -73,5 +93,13 @@ export const authApi = {
 
   health() {
     return apiRequest<HealthResponse>("/api/auth/health");
+  },
+
+  updateProfile(payload: UpdateProfileRequest, token: string) {
+    return apiRequest<UpdateProfileResponse>("/api/auth/profile", {
+      method: "PUT",
+      body: payload,
+      token,
+    });
   },
 };

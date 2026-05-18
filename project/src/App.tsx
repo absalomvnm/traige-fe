@@ -98,7 +98,7 @@ export default function App() {
     return null;
   }
 
-  function handleAuthSuccess(loginResponse: LoginResponse) {
+  async function handleAuthSuccess(loginResponse: LoginResponse) {
     const token = loginResponse.token ?? loginResponse.accessToken;
     if (!token) {
       console.error("[AUTH] Login response contained no token", loginResponse);
@@ -108,17 +108,28 @@ export default function App() {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     setAuthToken(token);
 
-    const nextUser = extractUser(loginResponse);
+    let nextUser = extractUser(loginResponse);
+    if (nextUser) {
+      console.log("[AUTH] Login received user from login response", { user: nextUser.email, role: nextUser.role });
+    }
+
+    try {
+      const me = await authApi.me(token);
+      const meUser = extractUser(me);
+      if (meUser) {
+        nextUser = meUser;
+        console.log("[AUTH] Login refreshed current user from /auth/me", { user: meUser.email, role: meUser.role });
+      }
+    } catch (error) {
+      console.warn("[AUTH] Could not fetch /auth/me after login", error);
+    }
+
     if (nextUser) {
       setCurrentUser(nextUser);
       console.log("[AUTH] Login successful", { user: nextUser.email, role: nextUser.role });
     }
 
-    // Load catalogs in the background after login.
     catalogService.load().catch(() => {});
-
-    // Navigate in the same React batch as setAuthToken so isAuthenticated is
-    // guaranteed true before nav()'s guard runs.
     setScreen("welcome");
   }
 
@@ -560,7 +571,7 @@ export default function App() {
 
     reports: <ReportsScreen onNav={nav} patients={patients} />,
     about: <AboutScreen onNav={nav} />,
-    profile: <ProfileScreen onNav={nav} currentUser={currentUser} onLogout={logout} />,
+    profile: <ProfileScreen onNav={nav} currentUser={currentUser} onLogout={logout} onUpdateUser={setCurrentUser} />,
   };
 
   const showsBottomNav = [

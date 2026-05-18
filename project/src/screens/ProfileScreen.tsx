@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AuthUser } from "../api";
 import { C } from "../constants/theme";
 import { Hdr, Card, Btn } from "../components/ui";
@@ -11,11 +11,13 @@ import {
   IconCheck,
 } from "../components/icons";
 import { useProfileReport } from "../hooks/useProfileReport";
+import { authApi } from "../api/auth";
 
 interface ProfileScreenProps {
   onNav: (screen: string) => void;
   currentUser?: AuthUser | null;
   onLogout?: () => void;
+  onUpdateUser?: (user: AuthUser) => void;
 }
 
 // ─── Role helpers ──────────────────────────────────────────────────────────
@@ -64,7 +66,6 @@ function deriveCredName(user?: AuthUser | null): string {
   const full = deriveFullName(user);
   if (!full) return "";
   const title = roleToTitle(user?.role) || (user as any)?.title || "";
-  // Use title + last name for compact creds
   const parts = full.split(/\s+/).filter(Boolean);
   const last = parts.length > 1 ? parts[parts.length - 1] : parts[0];
   if (title) return `${title} ${last}`;
@@ -119,7 +120,7 @@ function IconPencil(p: { size?: number; color?: string }) {
   );
 }
 
-export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenProps) {
+export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: ProfileScreenProps) {
   const theme = useMemo(() => roleTheme(currentUser?.role), [currentUser?.role]);
 
   const [profile, setProfile] = useState(() => ({
@@ -134,7 +135,34 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
   }));
 
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const fullNameInputRef = useRef<HTMLInputElement | null>(null);
+  const hasFocusedFirstField = useRef(false);
+
+  useEffect(() => {
+    if (editing && fullNameInputRef.current && !hasFocusedFirstField.current) {
+      fullNameInputRef.current.focus();
+      hasFocusedFirstField.current = true;
+    }
+    if (!editing) {
+      hasFocusedFirstField.current = false;
+    }
+
+    if (editing) return;
+
+    setProfile({
+      fullName:
+        deriveFullName(currentUser) ||
+        "Sister Jane Dlamini",
+      role: String(currentUser?.role || "").trim() || "Senior Midwife",
+      email: String(currentUser?.email || "").trim() || "jane.dlamini@hospital.org",
+      phone: (currentUser as any)?.cellNumber || (currentUser as any)?.phone || "+27 82 123 4567",
+      hospital: (currentUser as any)?.hospital || "KZN Maternity Unit",
+      sancNr: (currentUser as any)?.sancNr || "",
+    });
+  }, [currentUser, editing]);
 
   const credName = deriveCredName({
     ...(currentUser ?? {}),
@@ -147,11 +175,66 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
     setProfile((p) => ({ ...p, [key]: value }));
   }
 
-  function saveProfile() {
+async function saveProfile() {
+  setSaving(true);
+  setSaveError(null);
+
+  try {
+    const token =
+      // Use the same storage key as App (`obsa.auth.token`) so saves use the
+      // authenticated session token saved at login.
+      localStorage.getItem("obsa.auth.token") ||
+      localStorage.getItem("token") ||
+      sessionStorage.getItem("token") ||
+      (currentUser as any)?.token ||
+      "";
+
+    const updated = await authApi.updateProfile(
+      {
+        fullName: profile.fullName,
+        email: profile.email,
+        phone: profile.phone,
+        role: profile.role,
+        hospital: profile.hospital,
+        sancNr: profile.sancNr,
+      },
+      token
+    );
+
+    // Sync local state with what the server confirmed
+    const mergedProfile = {
+      fullName: updated.fullName ?? profile.fullName,
+      email: updated.email ?? profile.email,
+      phone: updated.phone ?? profile.phone,
+      role: updated.role ?? profile.role,
+      hospital: updated.hospital ?? profile.hospital,
+      sancNr: updated.sancNr ?? profile.sancNr,
+    };
+
+    setProfile(mergedProfile);
+
+    const updatedUser: AuthUser = {
+      ...(currentUser ?? {}),
+      ...updated,
+      fullName: mergedProfile.fullName,
+      email: mergedProfile.email,
+      role: mergedProfile.role,
+      phone: mergedProfile.phone,
+      hospital: mergedProfile.hospital,
+      sancNr: mergedProfile.sancNr,
+    };
+
+    onUpdateUser?.(updatedUser);
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  } catch (err: any) {
+    setSaveError(err?.message ?? "Failed to save. Please try again.");
+    setTimeout(() => setSaveError(null), 4000);
+  } finally {
+    setSaving(false);
   }
+}
 
   // ─── Styles ──────────────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
@@ -225,7 +308,7 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
     );
   }
 
-  function EditField({ icon, label, value, onChange, type = "text", placeholder }: { icon: React.ReactNode; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
+  function EditField({ icon, label, value, onChange, type = "text", placeholder, inputRef }: { icon: React.ReactNode; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; inputRef?: React.Ref<HTMLInputElement> }) {
     return (
       <div style={{ marginBottom: 12 }}>
         <label style={labelStyle}>
@@ -235,11 +318,15 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
           </span>
         </label>
         <input
+          ref={inputRef}
           type={type}
           value={value}
+          autoComplete="off"
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           style={inputStyle}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           onFocus={(e) => { e.currentTarget.style.borderColor = C.green; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.greenL}`; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }}
         />
@@ -454,7 +541,7 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
               </div>
               <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>Contact and identification details</div>
             </div>
-          {!editing ? (
+            {!editing ? (
               <button
                 onClick={() => setEditing(true)}
                 className="btn-press"
@@ -484,7 +571,7 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
 
           {editing ? (
             <>
-              <EditField icon={<IconUser size={12} />} label="Full Name" value={profile.fullName} onChange={(v) => updateField("fullName", v)} placeholder="e.g. Jane Dlamini" />
+              <EditField icon={<IconUser size={12} />} label="Full Name" value={profile.fullName} onChange={(v) => updateField("fullName", v)} placeholder="e.g. Jane Dlamini" inputRef={fullNameInputRef} />
               <EditField icon={<IconBadge size={12} />} label="Role" value={profile.role} onChange={(v) => updateField("role", v)} placeholder="e.g. Doctor / Midwife / Nurse" />
               <EditField icon={<IconMail size={12} />} label="Email" value={profile.email} onChange={(v) => updateField("email", v)} type="email" placeholder="name@hospital.org" />
               <EditField icon={<IconPhone size={12} />} label="Phone" value={profile.phone} onChange={(v) => updateField("phone", v)} type="tel" placeholder="+27 82 000 0000" />
@@ -502,30 +589,52 @@ export function ProfileScreen({ onNav, currentUser, onLogout }: ProfileScreenPro
 
           {/* Action buttons */}
           {editing ? (
-            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              <Btn variant="ghost" onClick={() => setEditing(false)} s={{ flex: 1, padding: "12px 0", borderRadius: 12 }}>
-                Cancel
-              </Btn>
-              <Btn
-                onClick={saveProfile}
-                s={{
-                  flex: 2,
-                  padding: "12px 0",
-                  borderRadius: 12,
-                  background:
-                    theme.accent === C.green
-                      ? C.gradGreen
-                      : theme.accent === C.teal
-                        ? C.gradTeal
-                        : theme.accent === C.purple
-                          ? C.gradPurple
-                          : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`,
-                }}
-              >
-                <IconCheck size={14} color="white" style={{ marginRight: 6 }} />
-                Save Changes
-              </Btn>
-            </div>
+            <>
+              <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                <Btn
+                  variant="ghost"
+                  onClick={() => { setEditing(false); setSaveError(null); }}
+                  s={{ flex: 1, padding: "12px 0", borderRadius: 12 }}
+                  disabled={saving}
+                >
+                  Cancel
+                </Btn>
+                <Btn
+                  onClick={saveProfile}
+                  disabled={saving}
+                  s={{
+                    flex: 2,
+                    padding: "12px 0",
+                    borderRadius: 12,
+                    opacity: saving ? 0.7 : 1,
+                    background:
+                      theme.accent === C.green
+                        ? C.gradGreen
+                        : theme.accent === C.teal
+                          ? C.gradTeal
+                          : theme.accent === C.purple
+                            ? C.gradPurple
+                            : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`,
+                  }}
+                >
+                  {saving ? (
+                    "Saving…"
+                  ) : (
+                    <>
+                      <IconCheck size={14} color="white" style={{ marginRight: 6 }} />
+                      Save Changes
+                    </>
+                  )}
+                </Btn>
+              </div>
+
+              {/* Save error banner */}
+              {saveError && (
+                <div style={{ marginTop: 10, padding: "10px 12px", background: "#FEF2F2", border: `1px solid ${C.p1}40`, borderRadius: 10, fontSize: 12, color: C.p1, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+                  ⚠ {saveError}
+                </div>
+              )}
+            </>
           ) : (
             saved && (
               <div style={{ marginTop: 12, padding: "10px 12px", background: "#ECFDF5", border: "1px solid #6EE7B7", borderRadius: 10, fontSize: 12, color: C.green, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
