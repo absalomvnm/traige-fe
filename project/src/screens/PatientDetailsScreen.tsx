@@ -1,20 +1,19 @@
-import { C, pC, pGrd, pBg, pLbl, pTm } from "../constants/theme";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { AiTriagePanel } from "../components/AiTriagePanel";
+import { DecisionExplanation } from "../components/DecisionExplanation";
+import { IconArrowLeft, IconCheck, IconClose, IconHospital, IconRefresh } from "../components/icons";
+import { NoteSection } from "../components/NoteSection";
+import { SignatureDisplay, SignaturePad } from "../components/SignaturePad";
+import { ChecklistSkeleton, VitalTileSkeleton } from "../components/Skeletons";
+import { Btn, Card, Inp, SectionLabel, Sel, StatusChip, Tag, Txt } from "../components/ui";
 import { MGMT } from "../constants/management";
-import { STATUS_OPTIONS, LOCATION_OPTIONS, OUTCOME_OPTIONS } from "../constants/options";
+import { LOCATION_OPTIONS, OUTCOME_OPTIONS, STATUS_OPTIONS } from "../constants/options";
+import { C, pBg, pC, pGrd, pLbl, pTm } from "../constants/theme";
+import { resolveConditionName, resolveConditionSource } from "../services/catalogService";
+import type { ManagementProcedure } from "../services/Patientservice";
+import { fetchImageAsBlobUrl, patientService, resolveAssetUrl } from "../services/Patientservice";
 import { fullName, timelineEntry } from "../utils/helpers";
 import { getRealtimeVitalAlerts } from "../utils/triage";
-import { Inp, Sel, Txt, Btn, Tag, StatusChip, Card, SectionLabel } from "../components/ui";
-import { VitalTileSkeleton, ChecklistSkeleton } from "../components/Skeletons";
-import { DecisionExplanation } from "../components/DecisionExplanation";
-import { AiTriagePanel } from "../components/AiTriagePanel";
-import { IconArrowLeft, IconHospital, IconRefresh, IconCheck, IconClose } from "../components/icons";
-import { SignaturePad, SignatureDisplay } from "../components/SignaturePad";
-import { NoteSection } from "../components/NoteSection";
-import { patientService } from "../services/Patientservice";
-import type { ManagementProcedure } from "../services/Patientservice";
-import { resolveAssetUrl, fetchImageAsBlobUrl } from "../services/Patientservice";
-import { resolveConditionName, resolveConditionSource } from "../services/catalogService";
 
 interface PatientDetailsScreenProps {
   onNav: (screen: string) => void;
@@ -1072,7 +1071,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
         </Card>
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, maxWidth: 480, margin: "0 auto", boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, width: "100%", margin: "0 auto" , boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
         <Btn variant="ghost" onClick={() => onNav("patients")} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>
         <Btn onClick={() => onNav("welcome")} s={{ flex: 2, padding: "13px 0" }}>Dashboard</Btn>
       </div>
@@ -1084,7 +1083,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.92)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16 }}
         >
           <div style={{ position: "absolute", top: 16, left: 16, right: 16, display: "flex", justifyContent: "space-between", alignItems: "center", color: "white", fontSize: 13, fontWeight: 600 }}>
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{ctgLightbox.name}</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%", margin: "0 auto" }}>{ctgLightbox.name}</span>
             <button onClick={(e) => { e.stopPropagation(); setCtgLightbox(null); }} style={{ background: "rgba(255,255,255,.15)", border: "none", color: "white", borderRadius: 999, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <IconClose size={16} />
             </button>
@@ -1093,7 +1092,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
             src={ctgLightbox.url}
             alt={ctgLightbox.name}
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "100%", maxHeight: "calc(100vh - 100px)", objectFit: "contain", borderRadius: 8, boxShadow: "0 10px 40px rgba(0,0,0,.5)" }}
+            style={{width: "100%", margin: "0 auto" , maxHeight: "calc(100vh - 100px)", objectFit: "contain", borderRadius: 8, boxShadow: "0 10px 40px rgba(0,0,0,.5)" }}
           />
           <div style={{ position: "absolute", bottom: 16, color: "rgba(255,255,255,.6)", fontSize: 11 }}>Tap outside to close</div>
         </div>
@@ -1107,7 +1106,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: C.bg, borderRadius: "20px 20px 0 0", maxHeight: "75dvh", overflowY: "auto", padding: "20px 16px 32px", width: "100%", maxWidth: 480 }}
+            style={{ background: C.bg, borderRadius: "20px 20px 0 0", maxHeight: "75dvh", overflowY: "auto", padding: "20px 16px 32px", width: "100%", margin: "0 auto"  }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>

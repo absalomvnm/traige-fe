@@ -4,11 +4,28 @@ import { Btn, Card, Hdr, Inp, SectionLabel, Sel } from "../components/ui";
 import { C } from "../constants/theme";
 import { formatCellNumber, validateCellNumber } from "../utils/helpers";
 
+const IconEye = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const IconEyeOff = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.96 10.96 0 0 1 12 20c-7 0-11-8-11-8a21.35 21.35 0 0 1 5.07-6.56" />
+    <path d="M3 3l18 18" />
+    <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24" />
+    <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88" />
+  </svg>
+);
+
 interface RegisterScreenProps {
   onNav: (screen: string) => void;
+  toast?: { success: (m: string) => void; error: (m: string) => void; info: (m: string) => void; warning: (m: string) => void };
 }
 
-export function RegisterScreen({ onNav }: RegisterScreenProps) {
+export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
   const [formData, setFormData] = useState({
     title: "Ms",
     firstName: "",
@@ -16,6 +33,7 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
     prof: "Midwife",
     sanc: "",
     cell: "",
+    hospital: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -26,6 +44,8 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (showPopup) {
@@ -40,6 +60,7 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
     formData.lastName.trim() !== "" &&
     formData.sanc.trim() !== "" &&
     formData.cell.trim() !== "" &&
+    formData.hospital.trim() !== "" &&
     cellError === null &&
     formData.email.trim() !== "" &&
     formData.password.trim() !== "" &&
@@ -86,6 +107,7 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
         lastName: formData.lastName,
         email: formData.email,
         cellNumber: formData.cell,
+        hospital: formData.hospital,
         sancNr: formData.sanc,
         role: formData.prof,
         password: formData.password,
@@ -94,6 +116,7 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
 
       console.log("[REGISTER] Registration successful", { email: formData.email });
       setSuccessMsg("Account created successfully. Redirecting to login...");
+      toast?.success("Account created successfully.");
       onNav("splash");
     } catch (error: unknown) {
       console.error("[REGISTER] Registration failed:", error);
@@ -159,10 +182,16 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
             onChange={handleCellChange}
           />
           {cellError && (
-            <div style={{ fontSize: 11, color: "#DC2626", marginTop: -10, marginBottom: 8, paddingLeft: 2 }}>
+            <div style={{ fontSize: 11, color: "#DC2626", marginTop: 6, marginBottom: 8, paddingLeft: 2 }}>
               {cellError}
             </div>
           )}
+          <Inp
+            label="Hospital"
+            placeholder="e.g. Tembisa Hospital"
+            value={formData.hospital}
+            onChange={handleChange("hospital")}
+          />
         </Card>
         <Card>
           <SectionLabel>Account Credentials</SectionLabel>
@@ -173,20 +202,68 @@ export function RegisterScreen({ onNav }: RegisterScreenProps) {
             value={formData.email}
             onChange={handleChange("email")}
           />
-          <Inp
-            label="Password"
-            type="password"
-            placeholder="Min. 8 characters"
-            value={formData.password}
-            onChange={handleChange("password")}
-          />
-          <Inp
-            label="Confirm Password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.confirmPassword}
-            onChange={handleChange("confirmPassword")}
-          />
+          <div style={{ position: "relative" }}>
+            <Inp
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Min. 8 characters"
+              value={formData.password}
+              onChange={handleChange("password")}
+              style={{ paddingRight: 44 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              style={{
+                position: "absolute",
+                top: "calc(50% + 10px)",
+                right: 12,
+                transform: "translateY(-50%)",
+                border: "none",
+                background: "transparent",
+                padding: 6,
+                cursor: "pointer",
+                color: C.textMuted,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <IconEyeOff /> : <IconEye />}
+            </button>
+          </div>
+          <div style={{ position: "relative" }}>
+            <Inp
+              label="Confirm Password"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={formData.confirmPassword}
+              onChange={handleChange("confirmPassword")}
+              style={{ paddingRight: 44 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              style={{
+                position: "absolute",
+                top: "calc(50% + 10px)",
+                right: 12,
+                transform: "translateY(-50%)",
+                border: "none",
+                background: "transparent",
+                padding: 6,
+                cursor: "pointer",
+                color: C.textMuted,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+            >
+              {showConfirmPassword ? <IconEyeOff /> : <IconEye />}
+            </button>
+          </div>
           {errorMsg && (
             <div
               className="fade-in"

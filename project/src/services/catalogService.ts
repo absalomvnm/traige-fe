@@ -19,10 +19,10 @@
 
 import { useSyncExternalStore } from "react";
 import type {
+  CatalogObstetricCondition,
+  CatalogPresentingCondition,
   CatalogPriority,
   CatalogSymptom,
-  CatalogPresentingCondition,
-  CatalogObstetricCondition,
 } from "./Patientservice";
 
 import { PATIENT_API_BASE_URL } from "../config/env";
@@ -135,8 +135,8 @@ export function useCatalogs(): CatalogState {
 
 const FALLBACK_COLORS: Record<number, string> = {
   1: "#DC2626",
-  2: "#D8D365",
-  3: "#C8C480",
+  2: "#FF6E00",
+  3: "#FFEF00",
   4: "#16A34A",
 };
 

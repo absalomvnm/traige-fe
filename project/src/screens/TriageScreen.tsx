@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
-import { C, pC, pBg } from "../constants/theme";
-import { patientService } from "../services/Patientservice";
+import { useEffect, useRef, useState } from "react";
+import { MultiConditionSelect } from "../components/MultiConditionSelect";
+import { IconArrowLeft, IconArrowRight, IconBolt, IconCheck, IconHeartPulse, IconPill, IconSiren, IconStethoscope, IconTestTube, IconUser, IconWarning } from "../components/icons";
+import { Btn, Card, ComboSel, Hdr, Inp, SectionLabel, Sel, Txt } from "../components/ui";
 import { STEPS } from "../constants/options";
 import { RISK_FACTORS } from "../constants/riskFactors";
+import { C, pBg, pC } from "../constants/theme";
+import { patientService } from "../services/Patientservice";
+import { buildAssessmentForm, formatCellNumber, parseSAID, validateCellNumber } from "../utils/helpers";
 import { calcPriority, getRealtimeVitalAlerts } from "../utils/triage";
-import { buildAssessmentForm, parseSAID, formatCellNumber, validateCellNumber } from "../utils/helpers";
-import { Inp, Sel, Txt, Btn, Hdr, Card, SectionLabel, ComboSel } from "../components/ui";
-import { MultiConditionSelect } from "../components/MultiConditionSelect";
-import { IconUser, IconPill, IconHeartPulse, IconTestTube, IconWarning, IconSiren, IconBolt, IconStethoscope, IconCheck, IconArrowLeft, IconArrowRight } from "../components/icons";
 
 // Signs & symptoms condition keys — used in both step-2 persist and go()-fallback
 const SS_KEYS = [
@@ -922,14 +922,14 @@ const IMPRESSION_MAP: Record<string, string> = {
       </div>
 
       {saveError && (
-        <div style={{ position: "fixed", bottom: 76, left: 0, right: 0, maxWidth: 480, margin: "0 auto", padding: "0 14px", zIndex: 10 }}>
+        <div style={{ position: "fixed", bottom: 76, left: 0, right: 0, width: "100%", margin: "0 auto", padding: "0 14px", zIndex: 10 }}>
           <div style={{ background: "#FFF7ED", border: "1.5px solid #F97316", borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#9A3412", display: "flex", alignItems: "flex-start", gap: 8 }}>
             <span style={{ flexShrink: 0, fontSize: 14 }}>⚠️</span>
             <span style={{ lineHeight: 1.6 }}>{saveError}<br /><strong>You can continue — data will be re-synced when the service is available.</strong></span>
           </div>
         </div>
       )}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, maxWidth: 480, margin: "0 auto", boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, width: "100%", margin: "0 auto", boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
         {step > 1 && <Btn variant="ghost" onClick={() => setStep((x) => x - 1)} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>}
         {step < STEPS.length
           ? <Btn
@@ -985,8 +985,8 @@ const IMPRESSION_MAP: Record<string, string> = {
               background: C.bg,
               borderRadius: 18,
               padding: "26px 28px",
-              maxWidth: 320,
-              width: "100%",
+              width: "100%", 
+              margin: "0 auto",
               textAlign: "center",
               boxShadow: "0 12px 40px rgba(0,0,0,.3)",
               border: `1px solid ${C.border}`,

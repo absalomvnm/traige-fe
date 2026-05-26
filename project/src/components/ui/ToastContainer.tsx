@@ -30,7 +30,7 @@ export function ToastContainer({ toasts }: ToastContainerProps) {
         left: "50%",
         transform: "translateX(-50%)",
         width: "calc(100% - 32px)",
-        maxWidth: 420,
+        margin: "0 auto" ,
         zIndex: 9999,
         display: "flex",
         flexDirection: "column",

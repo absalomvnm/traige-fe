@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import { authApi, type AuthUser, type LoginResponse } from "./api";
+import { ToastContainer } from "./components/ui";
+import { MGMT } from "./constants/management";
+import { RISK_FACTORS } from "./constants/riskFactors";
 import { C } from "./constants/theme";
 import {
   INITIAL_PATIENTS,
 } from "./data/patients";
-import "./styles/globalStyles";
-import { buildPatientFromAssessment, getStatusBundle, parseSAID } from "./utils/helpers";
 import { patientService } from "./services/Patientservice";
 import { catalogService, resolveConditionName } from "./services/catalogService";
-import { MGMT } from "./constants/management";
-import { RISK_FACTORS } from "./constants/riskFactors";
 import { useToast } from "./state/useToast";
-import { ToastContainer } from "./components/ui";
+import "./styles/globalStyles";
+import { buildPatientFromAssessment, getStatusBundle, parseSAID } from "./utils/helpers";
 
 import {
   BottomNav,
   SearchDrawer,
 } from "./components";
 
-import { IconSearch, IconUser, IconClipboardList, IconInfo, IconChevronRight } from "./components/icons";
+import { IconChevronRight, IconClipboardList, IconInfo, IconSearch, IconUser } from "./components/icons";
 import { ProfileScreen } from "./screens/ProfileScreen";
 import { ReportsScreen } from "./screens/ReportsScreen";
 
@@ -502,7 +502,7 @@ export default function App() {
   // ─────────────────────────────
   const screens: Record<string, any> = {
     splash: <SplashScreen onNav={nav} onAuthSuccess={handleAuthSuccess} />,
-    register: <RegisterScreen onNav={nav} />,
+    register: <RegisterScreen onNav={nav} toast={toast} />,
 
     welcome: (
       <WelcomeScreen
@@ -589,7 +589,6 @@ export default function App() {
         style={{
           fontFamily:'DM Sans',
           width: "100%",
-          maxWidth: 480,
           margin: "0 auto",
           minHeight: "100dvh",
           background: C.bg,
@@ -610,7 +609,6 @@ export default function App() {
       style={{
         fontFamily:'DM Sans',
         width: "100%",
-        maxWidth: 480,
         margin: "0 auto",
         height: "100dvh",
         background: C.bg,
@@ -628,7 +626,7 @@ export default function App() {
 
       {/* SEARCH */}
       {showsBottomNav && screen !== "patients" && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto" }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, width: "100%", margin: "0 auto" }}>
           <button
             onClick={() => setSearchOpen(true)}
             style={{
@@ -666,8 +664,8 @@ export default function App() {
             onClick={(e) => e.stopPropagation()}
             className="fade-up"
             style={{
-              width: "100%",
-              maxWidth: 480,
+              width: "100%", 
+              margin: "0 auto",
               background: "#fff",
               borderRadius: "24px 24px 0 0",
               paddingBottom: "env(safe-area-inset-bottom, 16px)",

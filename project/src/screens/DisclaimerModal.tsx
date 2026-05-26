@@ -23,7 +23,7 @@ export function DisclaimerModal({ onAccept }: DisclaimerModalProps) {
           background: "#ffffff",
           borderRadius: 20,
           width: "100%",
-          maxWidth: 400,
+          margin: "0 auto" ,
           height: "75vh",
           display: "flex",
           flexDirection: "column",

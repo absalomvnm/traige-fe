@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { C, pC } from "../constants/theme";
 import { fullName } from "../utils/helpers";
-import { SectionLabel, StatusChip, Btn } from "./ui";
 import { IconClose } from "./icons";
+import { Btn, SectionLabel, StatusChip } from "./ui";
 
 interface SearchDrawerProps {
   open: boolean;
@@ -77,7 +77,6 @@ export function SearchDrawer({
           bottom: 0,
           margin: "0 auto",
           width: "100%",
-          maxWidth: 480,
           background: C.bg,
           borderRadius: "22px 22px 0 0",
           boxShadow: "0 -14px 40px rgba(0,0,0,.22)",

@@ -1,9 +1,9 @@
+import { PatientCardSkeleton } from "../components/Skeletons";
+import { IconChevronRight, IconSearch } from "../components/icons";
+import { Btn, Hdr, StatusChip } from "../components/ui";
 import { C, pC } from "../constants/theme";
 import { priorityColor, resolveConditionName } from "../services/catalogService";
 import { fullName } from "../utils/helpers";
-import { Btn, Hdr, StatusChip } from "../components/ui";
-import { PatientCardSkeleton } from "../components/Skeletons";
-import { IconSearch, IconChevronRight } from "../components/icons";
 
 interface PatientsScreenProps {
   onNav: (screen: string, filter?: string | null) => void;
@@ -59,7 +59,7 @@ export function PatientsScreen({ onNav, patients, loading, onOpenPatient, onStar
               );
             })}
       </div>
-      <div style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", bottom: 64, width: "100%", maxWidth: 480, padding: "0 14px", zIndex: 90, pointerEvents: "none" }}>
+      <div style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", bottom: 64,width: "100%", margin: "0 auto", padding: "0 14px", zIndex: 90, pointerEvents: "none" }}>
         <div style={{ background: "linear-gradient(180deg, rgba(246,248,247,0) 0%, rgba(246,248,247,0.94) 26%, rgba(246,248,247,1) 100%)", paddingTop: 24, pointerEvents: "auto" }}>
           <Btn full onClick={onStartNewTriage} s={{ padding: "14px 0", borderRadius: 14, boxShadow: "0 8px 20px rgba(30,123,71,.35)" }}>+ New Triage Assessment</Btn>
         </div>

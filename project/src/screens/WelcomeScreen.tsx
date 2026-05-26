@@ -1,11 +1,11 @@
+import { useState } from "react";
+import type { AuthUser } from "../api";
+import { IconBolt, IconChevronRight, IconClipboardList, IconHospital, IconHourglass, IconInfo, IconSiren, IconStethoscope } from "../components/icons";
+import { SectionLabel, StatusChip, Tag } from "../components/ui";
 import { C, pC } from "../constants/theme";
 import { priorityColor, resolveConditionName } from "../services/catalogService";
 import { fullName } from "../utils/helpers";
-import { SectionLabel, Tag, StatusChip } from "../components/ui";
-import { IconHospital, IconSiren, IconBolt, IconHourglass, IconStethoscope, IconClipboardList, IconInfo, IconChevronRight } from "../components/icons";
 import { acceptDisclaimer, DisclaimerModal, hasAcceptedDisclaimer } from "./DisclaimerModal";
-import { useState } from "react";
-import type { AuthUser } from "../api";
 
 interface WelcomeScreenProps {
   onNav: (screen: string, filter?: string | null) => void;
@@ -57,10 +57,10 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
   console.log("[Dashboard] Most recent patient:", lastPatient?.id, lastPatient?.name, lastPatient?.latestAssessment?.assessedAt, lastPatient?.t);
 
   const stats = [
-    { l: "Triaged Today", v: String(triagedToday), gradient: "linear-gradient(135deg,#1E7B47,#0D6B3B)", icon: <IconHospital size={22} color="white" />, action: () => onNav("patients", null) },
     { l: "P1 Emergencies", v: String(p1Count), gradient: C.p1grd, icon: <IconSiren size={22} color="white" />, action: () => onNav("alerts") },
-    { l: "P2 Very Urgent", v: String(p2Count), gradient: C.p2grd, icon: <IconBolt size={22} color="white" />, action: () => onNav("patients", "p2") },
     { l: "Pending Review", v: String(pendingCount), gradient: "linear-gradient(135deg,#6366F1,#4338CA)", icon: <IconHourglass size={22} color="white" />, action: () => onNav("patients", "pending") },
+    { l: "P2 Very Urgent", v: String(p2Count), gradient: C.p2grd, icon: <IconBolt size={22} color="white" />, action: () => onNav("patients", "p2") },
+    { l: "Triaged Today", v: String(triagedToday), gradient: "linear-gradient(135deg,#1E7B47,#0D6B3B)", icon: <IconHospital size={22} color="white" />, action: () => onNav("patients", null) },
   ];
 
   const [showDisclaimer, setShowDisclaimer] = useState(!hasAcceptedDisclaimer());

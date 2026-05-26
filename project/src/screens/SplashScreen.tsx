@@ -4,6 +4,22 @@ import { Footprints, Logo, Woman } from "../components/branding";
 import { Btn, Inp } from "../components/ui";
 import { C } from "../constants/theme";
 
+const IconEye = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const IconEyeOff = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.96 10.96 0 0 1 12 20c-7 0-11-8-11-8a21.35 21.35 0 0 1 5.07-6.56" />
+    <path d="M3 3l18 18" />
+    <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24" />
+    <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88" />
+  </svg>
+);
+
 interface SplashScreenProps {
   onNav: (screen: string) => void;
   onAuthSuccess: (response: LoginResponse) => void;
@@ -13,6 +29,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
 
   const [formData, setFormData] = useState({ username: "", pw: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Enable button only if both fields have content
   const isFormValid = formData.username.trim() !== "" && formData.pw.trim() !== "";
@@ -151,7 +168,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
 
       <div
         className="fade-up"
-        style={{ animationDelay: ".2s", textAlign: "center", maxWidth: 290, marginBottom: 28 }}
+        style={{ animationDelay: ".2s", textAlign: "center", width: "100%", margin: "0 auto" , marginBottom: 28 }}
       >
         <div
           style={{
@@ -174,8 +191,8 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
         className="fade-up"
         style={{
           animationDelay: ".24s",
-          width: "100%",
-          maxWidth: 320,
+          width: "100%", 
+          margin: "0 auto",
           display: "flex",
           flexDirection: "column",
           gap: 6,
@@ -188,14 +205,37 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
           compact
           style={{ background: "rgba(255,255,255,.96)", borderColor: "rgba(255,255,255,.25)" }}
         />
-        <Inp
-          type="password"
-          placeholder="Password"
-          value={formData.pw}
-          onChange={handleInputChange("pw")}
-          compact
-          style={{ background: "rgba(255,255,255,.96)", borderColor: "rgba(255,255,255,.25)" }}
-        />
+        <div style={{ position: "relative" }}>
+          <Inp
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={formData.pw}
+            onChange={handleInputChange("pw")}
+            compact
+            style={{ background: "rgba(255,255,255,.96)", borderColor: "rgba(255,255,255,.25)", paddingRight: 44 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: 12,
+              transform: "translateY(-50%)",
+              border: "none",
+              background: "transparent",
+              padding: 6,
+              cursor: "pointer",
+              color: C.textMuted,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <IconEyeOff /> : <IconEye />}
+          </button>
+        </div>
         {/* The Notification UI */}
         {errorMsg && (
           <div className="fade-in" style={{

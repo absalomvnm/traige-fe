@@ -46,7 +46,7 @@ export function BottomNav({
         left: "50%",
         transform: "translateX(-50%)",
         width: "100%",
-        maxWidth: 480,
+        margin: "0 auto" ,
         background: "rgba(255,255,255,.96)",
         backdropFilter: "blur(16px)",
         borderTop: `1px solid ${C.border}`,

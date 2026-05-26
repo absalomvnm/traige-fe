@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AuthUser } from "../api";
-import { C } from "../constants/theme";
-import { Hdr, Card, Btn } from "../components/ui";
-import {
-  IconUser,
-  IconHospital,
-  IconCheckCircle,
-  IconStethoscope,
-  IconChevronRight,
-  IconCheck,
-} from "../components/icons";
-import { useProfileReport } from "../hooks/useProfileReport";
 import { authApi } from "../api/auth";
+import {
+  IconHospital,
+  IconStethoscope,
+  IconUser
+} from "../components/icons";
+import { Btn, Card, Hdr } from "../components/ui";
+import { C } from "../constants/theme";
+import { useProfileReport } from "../hooks/useProfileReport";
+import { formatCellNumber, validateCellNumber } from "../utils/helpers";
+
+// ─── TYPES & INTERFACES ──────────────────────────────────────────────────
 
 interface ProfileScreenProps {
   onNav: (screen: string) => void;
@@ -20,7 +20,8 @@ interface ProfileScreenProps {
   onUpdateUser?: (user: AuthUser) => void;
 }
 
-// ─── Role helpers ──────────────────────────────────────────────────────────
+// ─── ROLE & FORMATTING HELPERS ───────────────────────────────────────────
+
 function roleToTitle(role?: string): string {
   const r = String(role ?? "").trim().toLowerCase();
   if (!r) return "";
@@ -72,171 +73,57 @@ function deriveCredName(user?: AuthUser | null): string {
   return full;
 }
 
-// ─── Inline icon (uses existing IconHospital-like style) ──────────────────
-function IconMail(p: { size?: number; color?: string }) {
-  const s = p.size ?? 16;
+// ─── STYLED HELPER COMPONENTS (DEFINED OUTSIDE TO PREVENT FOCUS LOSS) ──────
+
+function ReadField({ icon, label, value, mono, theme }: any) {
   return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={p.color ?? "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="3" />
-      <path d="m22 7-10 6L2 7" />
-    </svg>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 14px",
+        background: "#fff",
+        borderRadius: 12,
+        border: `1px solid ${C.border}`,
+        marginBottom: 8,
+      }}
+    >
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          background: `linear-gradient(135deg, ${theme.soft}, #ffffff)`,
+          color: theme.accent,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          border: `1px solid ${theme.accent}25`,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: C.textMuted, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: C.text,
+            fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, monospace" : undefined,
+            wordBreak: "break-word",
+          }}
+        >
+          {value || <span style={{ color: C.textLight, fontWeight: 500 }}>Not set</span>}
+        </div>
+      </div>
+    </div>
   );
 }
-function IconPhone(p: { size?: number; color?: string }) {
-  const s = p.size ?? 16;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={p.color ?? "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" />
-    </svg>
-  );
-}
-function IconBadge(p: { size?: number; color?: string }) {
-  const s = p.size ?? 16;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={p.color ?? "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <circle cx="12" cy="11" r="3" />
-      <path d="M7 19a5 5 0 0 1 10 0" />
-    </svg>
-  );
-}
-function IconLogOut(p: { size?: number; color?: string }) {
-  const s = p.size ?? 16;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={p.color ?? "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  );
-}
-function IconPencil(p: { size?: number; color?: string }) {
-  const s = p.size ?? 16;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={p.color ?? "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-    </svg>
-  );
-}
 
-export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: ProfileScreenProps) {
-  const theme = useMemo(() => roleTheme(currentUser?.role), [currentUser?.role]);
-
-  const [profile, setProfile] = useState(() => ({
-    fullName:
-      deriveFullName(currentUser) ||
-      "Sister Jane Dlamini",
-    role: String(currentUser?.role || "").trim() || "Senior Midwife",
-    email: String(currentUser?.email || "").trim() || "jane.dlamini@hospital.org",
-    phone: (currentUser as any)?.cellNumber || (currentUser as any)?.phone || "+27 82 123 4567",
-    hospital: (currentUser as any)?.hospital || "KZN Maternity Unit",
-    sancNr: (currentUser as any)?.sancNr || "",
-  }));
-
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const fullNameInputRef = useRef<HTMLInputElement | null>(null);
-  const hasFocusedFirstField = useRef(false);
-
-  useEffect(() => {
-    if (editing && fullNameInputRef.current && !hasFocusedFirstField.current) {
-      fullNameInputRef.current.focus();
-      hasFocusedFirstField.current = true;
-    }
-    if (!editing) {
-      hasFocusedFirstField.current = false;
-    }
-
-    if (editing) return;
-
-    setProfile({
-      fullName:
-        deriveFullName(currentUser) ||
-        "Sister Jane Dlamini",
-      role: String(currentUser?.role || "").trim() || "Senior Midwife",
-      email: String(currentUser?.email || "").trim() || "jane.dlamini@hospital.org",
-      phone: (currentUser as any)?.cellNumber || (currentUser as any)?.phone || "+27 82 123 4567",
-      hospital: (currentUser as any)?.hospital || "KZN Maternity Unit",
-      sancNr: (currentUser as any)?.sancNr || "",
-    });
-  }, [currentUser, editing]);
-
-  const credName = deriveCredName({
-    ...(currentUser ?? {}),
-    fullName: profile.fullName,
-    role: profile.role,
-  } as any) || profile.fullName;
-  const initials = initialsOf(profile.fullName);
-
-  function updateField(key: string, value: string) {
-    setProfile((p) => ({ ...p, [key]: value }));
-  }
-
-async function saveProfile() {
-  setSaving(true);
-  setSaveError(null);
-
-  try {
-    const token =
-      // Use the same storage key as App (`obsa.auth.token`) so saves use the
-      // authenticated session token saved at login.
-      localStorage.getItem("obsa.auth.token") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("token") ||
-      (currentUser as any)?.token ||
-      "";
-
-    const updated = await authApi.updateProfile(
-      {
-        fullName: profile.fullName,
-        email: profile.email,
-        phone: profile.phone,
-        role: profile.role,
-        hospital: profile.hospital,
-        sancNr: profile.sancNr,
-      },
-      token
-    );
-
-    // Sync local state with what the server confirmed
-    const mergedProfile = {
-      fullName: updated.fullName ?? profile.fullName,
-      email: updated.email ?? profile.email,
-      phone: updated.phone ?? profile.phone,
-      role: updated.role ?? profile.role,
-      hospital: updated.hospital ?? profile.hospital,
-      sancNr: updated.sancNr ?? profile.sancNr,
-    };
-
-    setProfile(mergedProfile);
-
-    const updatedUser: AuthUser = {
-      ...(currentUser ?? {}),
-      ...updated,
-      fullName: mergedProfile.fullName,
-      email: mergedProfile.email,
-      role: mergedProfile.role,
-      phone: mergedProfile.phone,
-      hospital: mergedProfile.hospital,
-      sancNr: mergedProfile.sancNr,
-    };
-
-    onUpdateUser?.(updatedUser);
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  } catch (err: any) {
-    setSaveError(err?.message ?? "Failed to save. Please try again.");
-    setTimeout(() => setSaveError(null), 4000);
-  } finally {
-    setSaving(false);
-  }
-}
-
-  // ─── Styles ──────────────────────────────────────────────────────────────
+function EditField({ icon, label, value, onChange, type = "text", placeholder, inputRef, error }: any) {
   const labelStyle: React.CSSProperties = {
     fontSize: 11,
     fontWeight: 700,
@@ -251,467 +138,262 @@ async function saveProfile() {
     width: "100%",
     padding: "12px 14px",
     borderRadius: 12,
-    border: `1.5px solid ${C.border}`,
+    border: `1.5px solid ${error ? C.p1 : C.border}`,
     background: "#fff",
     fontSize: 14,
     outline: "none",
     color: C.text,
-    transition: "border-color .15s, box-shadow .15s",
   };
 
-  function ReadField({ icon, label, value, mono }: { icon: React.ReactNode; label: string; value: string; mono?: boolean }) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "12px 14px",
-          background: "#fff",
-          borderRadius: 12,
-          border: `1px solid ${C.border}`,
-          marginBottom: 8,
-          transition: "border-color .15s, box-shadow .15s",
+  const errorStyle: React.CSSProperties = {
+    marginTop: 6,
+    fontSize: 12,
+    color: C.p1,
+    lineHeight: 1.3,
+  };
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <label style={labelStyle}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ color: C.green }}>{icon}</span>
+          {label}
+        </span>
+      </label>
+      <input
+        ref={inputRef}
+        type={type}
+        value={value}
+        autoComplete="off"
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={inputStyle}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = C.green;
+          e.currentTarget.style.boxShadow = `0 0 0 3px ${C.greenL}`;
         }}
-      >
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: `linear-gradient(135deg, ${theme.soft}, #ffffff)`,
-            color: theme.accent,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            border: `1px solid ${theme.accent}25`,
-          }}
-        >
-          {icon}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: C.textMuted, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: C.text,
-              fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, monospace" : undefined,
-              wordBreak: "break-word",
-            }}
-          >
-            {value || <span style={{ color: C.textLight, fontWeight: 500 }}>Not set</span>}
-          </div>
-        </div>
-      </div>
-    );
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = error ? C.p1 : C.border;
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      />
+      {error ? <div style={errorStyle}>{error}</div> : null}
+    </div>
+  );
+}
+
+const IconMail = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="3" /><path d="m22 7-10 6L2 7" /></svg>
+);
+const IconPhone = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" /></svg>
+);
+const IconBadge = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="12" cy="11" r="3" /><path d="M7 19a5 5 0 0 1 10 0" /></svg>
+);
+const IconLogOut = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+);
+const IconPencil = ({ size = 16, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+);
+
+// ─── MAIN COMPONENT ──────────────────────────────────────────────────────
+
+export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: ProfileScreenProps) {
+  const theme = useMemo(() => roleTheme(currentUser?.role), [currentUser?.role]);
+
+  const [profile, setProfile] = useState(() => ({
+    fullName: deriveFullName(currentUser) || "Sister Jane Dlamini",
+    role: String(currentUser?.role || "").trim() || "Senior Midwife",
+    email: String(currentUser?.email || "").trim() || "jane.dlamini@hospital.org",
+    phone: (currentUser as any)?.cellNumber || (currentUser as any)?.phone || "+27 82 123 4567",
+    hospital: (currentUser as any)?.hospital || "KZN Maternity Unit",
+    sancNr: (currentUser as any)?.sancNr || "",
+  }));
+
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  
+  const fullNameInputRef = useRef<HTMLInputElement | null>(null);
+  const hasFocusedFirstField = useRef(false);
+
+  // Sync logic
+  useEffect(() => {
+    // Focus management
+    if (editing && fullNameInputRef.current && !hasFocusedFirstField.current) {
+      fullNameInputRef.current.focus();
+      hasFocusedFirstField.current = true;
+    }
+    if (!editing) {
+      hasFocusedFirstField.current = false;
+    }
+
+    // Only update profile from currentUser if we are NOT in the middle of editing
+    if (!editing) {
+      setProfile({
+        fullName: deriveFullName(currentUser) || "Sister Jane Dlamini",
+        role: String(currentUser?.role || "").trim() || "Senior Midwife",
+        email: String(currentUser?.email || "").trim() || "jane.dlamini@hospital.org",
+        phone: (currentUser as any)?.cellNumber || (currentUser as any)?.phone || "+27 82 123 4567",
+        hospital: (currentUser as any)?.hospital || "KZN Maternity Unit",
+        sancNr: (currentUser as any)?.sancNr || "",
+      });
+    }
+  }, [currentUser, editing]);
+
+  const credName = deriveCredName({
+    ...(currentUser ?? {}),
+    fullName: profile.fullName,
+    role: profile.role,
+  } as any) || profile.fullName;
+  
+  const initials = initialsOf(profile.fullName);
+
+  function updateField(key: string, value: string) {
+    if (key === "phone") {
+      const formatted = formatCellNumber(value);
+      setPhoneError(validateCellNumber(formatted));
+      setProfile((p) => ({ ...p, phone: formatted }));
+      return;
+    }
+
+    setProfile((p) => ({ ...p, [key]: value }));
   }
 
-  function EditField({ icon, label, value, onChange, type = "text", placeholder, inputRef }: { icon: React.ReactNode; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; inputRef?: React.Ref<HTMLInputElement> }) {
-    return (
-      <div style={{ marginBottom: 12 }}>
-        <label style={labelStyle}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: C.green }}>{icon}</span>
-            {label}
-          </span>
-        </label>
-        <input
-          ref={inputRef}
-          type={type}
-          value={value}
-          autoComplete="off"
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          style={inputStyle}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-          onFocus={(e) => { e.currentTarget.style.borderColor = C.green; e.currentTarget.style.boxShadow = `0 0 0 3px ${C.greenL}`; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }}
-        />
-      </div>
-    );
+  async function saveProfile() {
+    const phoneValidation = validateCellNumber(profile.phone);
+    if (phoneValidation) {
+      setPhoneError(phoneValidation);
+      setSaveError("Please enter a valid South African phone number.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const token = localStorage.getItem("obsa.auth.token") || "";
+      const updated = await authApi.updateProfile(profile, token);
+
+      const mergedProfile = { ...profile, ...updated };
+      setProfile(mergedProfile);
+
+      const updatedUser: AuthUser = {
+        ...(currentUser ?? {}),
+        ...updated,
+        ...mergedProfile,
+      };
+
+      onUpdateUser?.(updatedUser);
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err: any) {
+      setSaveError(err?.message ?? "Failed to save. Please try again.");
+      setTimeout(() => setSaveError(null), 4000);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // Profile stats
   const userId = (currentUser as any)?.id;
   const { report, loading: reportLoading, error: reportError } = useProfileReport(userId);
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, paddingBottom: 100 }}>
-      <Hdr title="Account" onBack={() => onNav("welcome")} gradient={theme.accent === C.green ? C.gradGreen : theme.accent === C.teal ? C.gradTeal : theme.accent === C.purple ? C.gradPurple : C.gradGreen} />
+      <Hdr 
+        title="Account" 
+        onBack={() => onNav("welcome")} 
+        gradient={theme.accent === C.green ? C.gradGreen : theme.accent === C.teal ? C.gradTeal : theme.accent === C.purple ? C.gradPurple : C.gradGreen} 
+      />
 
-      {/* HERO — modernized identity card */}
+      {/* HERO SECTION */}
       <div style={{ position: "relative", padding: "0 14px" }}>
-        <div
-          style={{
+        <div style={{
             position: "relative",
-            background: theme.accent === C.green
-              ? C.gradGreen
-              : theme.accent === C.teal
-                ? C.gradTeal
-                : theme.accent === C.purple
-                  ? C.gradPurple
-                  : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`,
+            background: theme.accent === C.green ? C.gradGreen : theme.accent === C.teal ? C.gradTeal : theme.accent === C.purple ? C.gradPurple : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`,
             marginTop: 12,
             borderRadius: 22,
             padding: "20px 18px 22px",
-            overflow: "hidden",
             boxShadow: `0 14px 36px ${theme.accent}40`,
-          }}
-        >
-          <div style={{ position: "absolute", top: -50, right: -30, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: -70, left: -30, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,.05)", pointerEvents: "none" }} />
-
-          <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 14 }}>
-            {/* Avatar */}
-            <div
-              style={{
-                width: 76,
-                height: 76,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,.18)",
-                backdropFilter: "blur(10px)",
-                padding: 3,
-                border: "1.5px solid rgba(255,255,255,.35)",
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                  background: "white",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: theme.accent,
-                  fontSize: 26,
-                  fontWeight: 900,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {initials}
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 76, height: 76, borderRadius: "50%", background: "white", display: "flex", alignItems: "center", justifyContent: "center", color: theme.accent, fontSize: 26, fontWeight: 900 }}>
+              {initials}
+            </div>
+            <div style={{ flex: 1, color: "white" }}>
+              <div style={{ fontSize: 19, fontWeight: 900 }}>{credName}</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "3px 10px", background: "rgba(255,255,255,.22)", borderRadius: 999, fontSize: 10, fontWeight: 800 }}>
+                <IconStethoscope size={11} color="white" /> {profile.role}
               </div>
             </div>
-
-            <div style={{ flex: 1, minWidth: 0, color: "white" }}>
-              <div style={{ fontSize: 19, fontWeight: 900, letterSpacing: "-.005em", lineHeight: 1.2 }}>{credName}</div>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  marginTop: 6,
-                  padding: "3px 10px",
-                  background: "rgba(255,255,255,.22)",
-                  backdropFilter: "blur(8px)",
-                  border: "1px solid rgba(255,255,255,.32)",
-                  borderRadius: 999,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  letterSpacing: ".08em",
-                  textTransform: "uppercase",
-                }}
-              >
-                <IconStethoscope size={11} color="white" />
-                {profile.role}
-              </div>
-              {profile.hospital && (
-                <div style={{ marginTop: 6, fontSize: 12, color: "rgba(255,255,255,.85)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  <IconHospital size={12} color="rgba(255,255,255,.85)" />
-                  {profile.hospital}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Live status pills */}
-          <div style={{ display: "flex", gap: 6, marginTop: 16, position: "relative", zIndex: 1 }}>
-            {[
-              { label: "Active", icon: <IconCheckCircle size={11} color="white" /> },
-              { label: "On duty", icon: <IconUser size={11} color="white" /> },
-              { label: theme.tag, icon: <IconBadge size={11} color="white" /> },
-            ].map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 5,
-                  background: "rgba(255,255,255,.16)",
-                  border: "1px solid rgba(255,255,255,.24)",
-                  backdropFilter: "blur(6px)",
-                  borderRadius: 10,
-                  padding: "7px 6px",
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  color: "white",
-                  letterSpacing: ".02em",
-                }}
-              >
-                {s.icon}
-                {s.label}
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
-      {/* PERFORMANCE STATS — modern tiles */}
+      {/* STATS SECTION */}
       <div style={{ padding: "16px 14px 6px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, padding: "0 2px" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.textMuted, letterSpacing: ".12em", textTransform: "uppercase" }}>
-            Activity Summary
-          </div>
-          {report && <div style={{ fontSize: 10, color: C.textLight, fontWeight: 600 }}>Last 30 days</div>}
-        </div>
-
         {reportLoading ? (
-          <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${C.border}`, padding: 20, textAlign: "center", color: C.textMuted, fontSize: 13 }}>
-            Loading stats…
-          </div>
-        ) : reportError ? (
-          <div style={{ background: "#FEF2F2", borderRadius: 16, border: `1px solid ${C.p1}40`, padding: 14, textAlign: "center", color: C.p1, fontSize: 12, fontWeight: 600 }}>
-            {reportError}
-          </div>
+            <div style={{ padding: 20, textAlign: "center", color: C.textMuted }}>Loading stats…</div>
         ) : report ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
-            {[
-              { label: "Triaged", value: report.triagedCount, color: C.green, icon: "🩺" },
-              { label: "Acknowledged", value: report.acknowledgementsApproved, color: C.teal, icon: "✓" },
-              { label: "Notes", value: report.notesAdded, color: C.purple, icon: "📝" },
-              { label: "Checklists", value: report.checklistsCompleted, color: C.p2, icon: "☑" },
-              { label: "Timeline", value: report.timelineEventsLogged, color: C.sky, icon: "🕒" },
-            ].map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  position: "relative",
-                  background: "#fff",
-                  borderRadius: 14,
-                  border: `1px solid ${C.border}`,
-                  padding: "14px 14px",
-                  overflow: "hidden",
-                  boxShadow: "0 1px 3px rgba(0,0,0,.04)",
-                  transition: "transform .15s, box-shadow .15s",
-                }}
-                className="card-hover"
-              >
-                <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: s.color }} />
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                  <div>
-                    <div style={{ fontSize: 26, fontWeight: 900, color: s.color, lineHeight: 1, letterSpacing: "-.02em" }}>{s.value}</div>
-                    <div style={{ fontSize: 10.5, fontWeight: 700, color: C.textMuted, letterSpacing: ".06em", textTransform: "uppercase", marginTop: 5 }}>{s.label}</div>
-                  </div>
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 10,
-                      background: `${s.color}12`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 14,
-                      color: s.color,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {s.icon}
-                  </div>
+             {[
+                { label: "Triaged", value: report.triagedCount, color: C.green, icon: "🩺" },
+                { label: "Notes", value: report.notesAdded, color: C.purple, icon: "📝" },
+             ].map((s, i) => (
+                <div key={i} style={{ background: "#fff", borderRadius: 14, border: `1px solid ${C.border}`, padding: 14 }}>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: s.color }}>{s.value}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: C.textMuted }}>{s.label}</div>
                 </div>
-              </div>
-            ))}
+             ))}
           </div>
         ) : null}
       </div>
 
+      {/* DATA SECTION */}
       <div style={{ padding: "12px 14px 16px" }}>
-        {/* Personal Information */}
-        <Card s={{ padding: 16, marginBottom: 12, borderRadius: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: C.text, letterSpacing: "-.005em" }}>
-                Personal Information
-              </div>
-              <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>Contact and identification details</div>
-            </div>
-            {!editing ? (
-              <button
-                onClick={() => setEditing(true)}
-                className="btn-press"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: `linear-gradient(135deg, ${theme.soft}, #ffffff)`,
-                  color: theme.accent,
-                  border: `1px solid ${theme.accent}30`,
-                  borderRadius: 999,
-                  padding: "6px 12px",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: ".02em",
-                  cursor: "pointer",
-                }}
-              >
-                <IconPencil size={11} color={theme.accent} /> Edit
+        <Card s={{ padding: 16, borderRadius: 18 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
+            <div style={{ fontSize: 14, fontWeight: 800 }}>Personal Information</div>
+            {!editing && (
+              <button onClick={() => setEditing(true)} style={{ color: theme.accent, background: 'none', border: 'none', fontWeight: 800, fontSize: 12 }}>
+                <IconPencil size={12} /> Edit
               </button>
-            ) : (
-              <span style={{ fontSize: 10, fontWeight: 800, color: theme.accent, background: theme.soft, padding: "5px 11px", borderRadius: 999, letterSpacing: ".08em", textTransform: "uppercase", border: `1px solid ${theme.accent}30` }}>
-                Editing
-              </span>
             )}
           </div>
 
           {editing ? (
             <>
-              <EditField icon={<IconUser size={12} />} label="Full Name" value={profile.fullName} onChange={(v) => updateField("fullName", v)} placeholder="e.g. Jane Dlamini" inputRef={fullNameInputRef} />
-              <EditField icon={<IconBadge size={12} />} label="Role" value={profile.role} onChange={(v) => updateField("role", v)} placeholder="e.g. Doctor / Midwife / Nurse" />
-              <EditField icon={<IconMail size={12} />} label="Email" value={profile.email} onChange={(v) => updateField("email", v)} type="email" placeholder="name@hospital.org" />
-              <EditField icon={<IconPhone size={12} />} label="Phone" value={profile.phone} onChange={(v) => updateField("phone", v)} type="tel" placeholder="+27 82 000 0000" />
-              <EditField icon={<IconHospital size={12} />} label="Hospital / Unit" value={profile.hospital} onChange={(v) => updateField("hospital", v)} placeholder="e.g. KZN Maternity Unit" />
-            </>
-          ) : (
-            <>
-              <ReadField icon={<IconUser size={14} />} label="Full Name" value={profile.fullName} />
-              <ReadField icon={<IconBadge size={14} />} label="Role" value={profile.role} />
-              <ReadField icon={<IconMail size={14} />} label="Email" value={profile.email} />
-              <ReadField icon={<IconPhone size={14} />} label="Phone" value={profile.phone} />
-              <ReadField icon={<IconHospital size={14} />} label="Hospital / Unit" value={profile.hospital} />
-            </>
-          )}
-
-          {/* Action buttons */}
-          {editing ? (
-            <>
+              <EditField icon={<IconUser size={12} />} label="Full Name" value={profile.fullName} onChange={(v: string) => updateField("fullName", v)} inputRef={fullNameInputRef} />
+              <EditField icon={<IconBadge size={12} />} label="Role" value={profile.role} onChange={(v: string) => updateField("role", v)} />
+              <ReadField theme={theme} icon={<IconMail size={14} />} label="Email" value={profile.email} />
+              <EditField icon={<IconPhone size={12} />} label="Phone" value={profile.phone} onChange={(v: string) => updateField("phone", v)} type="tel" placeholder="+27 82 000 0000" error={phoneError} />
+              <EditField icon={<IconHospital size={12} />} label="Hospital" value={profile.hospital} onChange={(v: string) => updateField("hospital", v)} />
+              
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                <Btn
-                  variant="ghost"
-                  onClick={() => { setEditing(false); setSaveError(null); }}
-                  s={{ flex: 1, padding: "12px 0", borderRadius: 12 }}
-                  disabled={saving}
-                >
-                  Cancel
-                </Btn>
-                <Btn
-                  onClick={saveProfile}
-                  disabled={saving}
-                  s={{
-                    flex: 2,
-                    padding: "12px 0",
-                    borderRadius: 12,
-                    opacity: saving ? 0.7 : 1,
-                    background:
-                      theme.accent === C.green
-                        ? C.gradGreen
-                        : theme.accent === C.teal
-                          ? C.gradTeal
-                          : theme.accent === C.purple
-                            ? C.gradPurple
-                            : `linear-gradient(135deg, ${theme.accent}, ${theme.accent}dd)`,
-                  }}
-                >
-                  {saving ? (
-                    "Saving…"
-                  ) : (
-                    <>
-                      <IconCheck size={14} color="white" style={{ marginRight: 6 }} />
-                      Save Changes
-                    </>
-                  )}
+                <Btn variant="ghost" onClick={() => setEditing(false)} s={{ flex: 1 }}>Cancel</Btn>
+                <Btn onClick={saveProfile} disabled={saving} s={{ flex: 2, background: theme.accent }}>
+                  {saving ? "Saving..." : "Save Changes"}
                 </Btn>
               </div>
-
-              {/* Save error banner */}
-              {saveError && (
-                <div style={{ marginTop: 10, padding: "10px 12px", background: "#FEF2F2", border: `1px solid ${C.p1}40`, borderRadius: 10, fontSize: 12, color: C.p1, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                  ⚠ {saveError}
-                </div>
-              )}
             </>
           ) : (
-            saved && (
-              <div style={{ marginTop: 12, padding: "10px 12px", background: "#ECFDF5", border: "1px solid #6EE7B7", borderRadius: 10, fontSize: 12, color: C.green, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                <IconCheckCircle size={14} color={C.green} />
-                Profile updated successfully
-              </div>
-            )
+            <>
+              <ReadField theme={theme} icon={<IconUser size={14} />} label="Full Name" value={profile.fullName} />
+              <ReadField theme={theme} icon={<IconBadge size={14} />} label="Role" value={profile.role} />
+              <ReadField theme={theme} icon={<IconMail size={14} />} label="Email" value={profile.email} />
+              <ReadField theme={theme} icon={<IconPhone size={14} />} label="Phone" value={profile.phone} />
+              <ReadField theme={theme} icon={<IconHospital size={14} />} label="Hospital" value={profile.hospital} />
+            </>
           )}
         </Card>
 
-        {/* Credentials */}
-        {profile.sancNr && (
-          <Card s={{ padding: 16, marginBottom: 12, borderRadius: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 12, letterSpacing: "-.005em" }}>Credentials</div>
-            <ReadField icon={<IconBadge size={14} />} label="SANC Number" value={profile.sancNr} mono />
-          </Card>
-        )}
-
-        {/* Quick links */}
-        <Card s={{ padding: 0, marginBottom: 12, overflow: "hidden", borderRadius: 18 }}>
-          <div style={{ padding: "14px 16px 6px", fontSize: 14, fontWeight: 800, color: C.text, letterSpacing: "-.005em" }}>Quick Access</div>
-          {[
-            { l: "About ObSAtriage", screen: "about", icon: <IconStethoscope size={14} color={theme.accent} />, sub: "App information and credits" },
-            { l: "Alerts", screen: "alerts", icon: <IconUser size={14} color={theme.accent} />, sub: "Active patient notifications" },
-          ].map((row, i, arr) => (
-            <button
-              key={row.screen}
-              onClick={() => onNav(row.screen)}
-              className="btn-press"
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "14px 16px",
-                background: "transparent",
-                border: "none",
-                borderTop: i === 0 ? `1px solid ${C.border}` : "none",
-                borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none",
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${theme.soft}, #ffffff)`, border: `1px solid ${theme.accent}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {row.icon}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{row.l}</div>
-                <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{row.sub}</div>
-              </div>
-              <IconChevronRight size={14} color={C.textMuted} />
-            </button>
-          ))}
-        </Card>
-
-        {/* Sign out */}
         {onLogout && (
-          <button
-            onClick={onLogout}
-            style={{
-              width: "100%",
-              padding: "14px 0",
-              background: "#fff",
-              border: `1.5px solid ${C.p1}`,
-              color: C.p1,
-              borderRadius: 14,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-          >
-            <IconLogOut size={14} color={C.p1} />
-            Sign Out
+          <button onClick={onLogout} style={{ width: "100%", marginTop: 20, padding: 14, background: "#fff", border: `1.5px solid ${C.p1}`, color: C.p1, borderRadius: 14, fontWeight: 700 }}>
+            <IconLogOut size={14} /> Sign Out
           </button>
         )}
       </div>

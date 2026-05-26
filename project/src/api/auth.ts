@@ -11,6 +11,7 @@ export interface RegisterRequest {
   lastName: string;
   email: string;
   cellNumber: string;
+  hospital?: string;
   sancNr: string;
   role: string;
   password: string;

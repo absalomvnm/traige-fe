@@ -1,9 +1,9 @@
-import type { Patient, TimelineEvent, StatusBundle, AssessmentForm } from "../types";
-import { C, pC, pLbl } from "../constants/theme";
 import { CONDITIONS, CONDITION_LABELS } from "../constants/conditions";
 import { MGMT } from "../constants/management";
 import { RISK_FACTORS } from "../constants/riskFactors";
+import { C, pC, pLbl } from "../constants/theme";
 import { formatConditionCode, parseAiConditions } from "../services/catalogService";
+import type { AssessmentForm, Patient, StatusBundle, TimelineEvent } from "../types";
 
 export function fullName(patient: any): string {
   return (
@@ -75,23 +75,31 @@ export function timeStamp(): string {
  * Works progressively as the user types.
  */
 export function formatCellNumber(raw: string): string {
-  // Extract digits only
+  // 1. If the user cleared the input or is deleting the prefix, let them.
+  if (raw.length < 4 && (raw === "+" || raw === "+2" || raw === "")) {
+    return raw;
+  }
+
+  // 2. Extract digits only
   const digits = raw.replace(/\D/g, "");
 
-  // Normalise: strip country code prefix (27) or local prefix (0)
+  // 3. Normalise: strip country code prefix (27) or local prefix (0)
   let local = digits;
-  if (local.startsWith("27") && local.length > 2) local = local.slice(2);
-  else if (local.startsWith("0")) local = local.slice(1);
+  if (local.startsWith("27")) {
+    local = local.slice(2);
+  } else if (local.startsWith("0")) {
+    local = local.slice(1);
+  }
 
   local = local.slice(0, 9); // cap at 9 significant digits
 
-  if (local.length === 0) return "";
+  if (local.length === 0) return "+27 ";
 
-  // Progressive format: +27 XX XXX XXXX
+  // 4. Progressive format: +27 XX XXX XXXX
   let result = "+27";
   if (local.length >= 1) result += " " + local.slice(0, Math.min(2, local.length));
-  if (local.length > 2)  result += " " + local.slice(2, Math.min(5, local.length));
-  if (local.length > 5)  result += " " + local.slice(5);
+  if (local.length > 2) result += " " + local.slice(2, Math.min(5, local.length));
+  if (local.length > 5) result += " " + local.slice(5);
 
   return result;
 }
