@@ -3,11 +3,11 @@ import { MultiConditionSelect } from "../components/MultiConditionSelect";
 import { IconArrowLeft, IconArrowRight, IconBolt, IconCheck, IconHeartPulse, IconPill, IconSiren, IconStethoscope, IconTestTube, IconUser, IconWarning } from "../components/icons";
 import { Btn, Card, ComboSel, Hdr, Inp, SectionLabel, Sel, Txt } from "../components/ui";
 import { STEPS } from "../constants/options";
-import { RISK_FACTORS } from "../constants/riskFactors";
 import { C, pBg, pC } from "../constants/theme";
 import { patientService } from "../services/Patientservice";
 import { buildAssessmentForm, formatCellNumber, parseSAID, validateCellNumber } from "../utils/helpers";
 import { calcPriority, getRealtimeVitalAlerts } from "../utils/triage";
+import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
 
 // Signs & symptoms condition keys — used in both step-2 persist and go()-fallback
 const SS_KEYS = [
@@ -31,7 +31,6 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
   const [step, setStep] = useState(1);
   const [f, sf] = useState(() => buildAssessmentForm(initialData));
   const s = (k: string) => (e: any) => sf((p: any) => ({ ...p, [k]: e.target.value }));
-  const toggleRiskFactor = (key: string) => sf((p: any) => ({ ...p, [key]: !p[key] }));
   const pct = (step / STEPS.length) * 100;
   const vitalAlerts = getRealtimeVitalAlerts(f);
   const activeAlertList = Object.values(vitalAlerts);
@@ -297,17 +296,19 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     let assessmentId = (f as any).assessmentId as number | undefined;
     const userId = currentUser?.id ? Number(currentUser.id) : 0;
 
+    const selectedRiskFactors = new Set<string>((f.riskCondKeys as string[]) || []);
+
     const riskFactorsPayload = {
-      previous_caesarean:    Boolean((f as any).previous_caesarean),
-      chronic_hypertension:  Boolean((f as any).chronic_hypertension),
-      diabetes_mellitus:     Boolean((f as any).diabetes_mellitus),
-      grand_multiparity:     Boolean((f as any).grand_multiparity),
-      advanced_maternal_age: Boolean((f as any).advanced_maternal_age),
-      multiple_pregnancy:    Boolean((f as any).multiple_pregnancy),
-      rhesus_incompatibility:Boolean((f as any).rhesus_incompatibility),
-      hiv_positive:          Boolean((f as any).hiv_positive),
-      severe_anaemia:        Boolean((f as any).severe_anaemia),
-      previous_pph:          Boolean((f as any).previous_pph),
+      previous_caesarean: selectedRiskFactors.has("previous_caesarean"),
+      chronic_hypertension: selectedRiskFactors.has("chronic_hypertension"),
+      diabetes_mellitus: selectedRiskFactors.has("diabetes_mellitus"),
+      grand_multiparity: selectedRiskFactors.has("grand_multiparity"),
+      advanced_maternal_age: selectedRiskFactors.has("advanced_maternal_age"),
+      multiple_pregnancy: selectedRiskFactors.has("multiple_pregnancy"),
+      rhesus_incompatibility: selectedRiskFactors.has("rhesus_incompatibility"),
+      hiv_positive: selectedRiskFactors.has("hiv_positive"),
+      severe_anaemia: selectedRiskFactors.has("severe_anaemia"),
+      previous_pph: selectedRiskFactors.has("previous_pph"),
     };
 
     if (assessmentId && f.patientId) {
@@ -919,29 +920,38 @@ const IMPRESSION_MAP: Record<string, string> = {
           <div className="fade-up">
             <Card>
               <SectionLabel color={C.green} mb={6}>Risk Factors</SectionLabel>
-              <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 14 }}>Select all that apply</div>
-              {RISK_FACTORS.map((rf, i) => (
-                <button
-                  key={rf.k}
-                  type="button"
-                  aria-pressed={Boolean((f as any)[rf.k])}
-                  onClick={() => toggleRiskFactor(rf.k)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "13px 0", border: "none",
-                    borderBottom: i < RISK_FACTORS.length - 1 ? `1px solid ${C.border}` : "none",
-                    background: Boolean((f as any)[rf.k]) ? `${C.greenL}55` : "transparent", cursor: "pointer", textAlign: "left",
-                  }}
-                >
-                  <div style={{
-                    width: 20, height: 20, borderRadius: 6, border: `2px solid ${Boolean((f as any)[rf.k]) ? C.green : "#CBD5E1"}`,
-                    background: Boolean((f as any)[rf.k]) ? C.gradGreen : "#fff",
-                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff", fontSize: 12, fontWeight: 900,
-                  }}>
-                    {Boolean((f as any)[rf.k]) ? <IconCheck size={12} color="white" /> : ""}
-                  </div>
-                  <span style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{rf.l}</span>
-                </button>
-              ))}
+              <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 12 }}>
+                Select all relevant risk factors. Priority will be adjusted based on the selections made.
+              </div>
+              <MultiRiskFactorSelect
+                selectedKeys={[
+                  ...((f.riskCondKeys || []).filter((k: string) => !k.startsWith("custom:") && !k.startsWith("custom_"))),
+                  ...((Array.isArray(f.rfCustom) ? f.rfCustom : []) as string[]).map((s: string) => `custom:${s}`),
+                ]}
+                riskFactorsObj={f.riskFactorsObj || undefined}
+                onChange={(keys: string[]) => {
+                  const stripCustom = (k: string) => k.replace(/^custom[:_]/, "");
+                  const std = keys.filter((k) => !k.startsWith("custom:") && !k.startsWith("custom_"));
+                  const custom = keys.filter((k) => k.startsWith("custom:") || k.startsWith("custom_")).map(stripCustom);
+                  sf((prev) => ({
+                    ...prev,
+                    riskCondKeys: std,
+                    rfCustom: custom,
+                    riskFactorsObj: {
+                      previous_caesarean: std.includes("previous_caesarean"),
+                      chronic_hypertension: std.includes("chronic_hypertension"),
+                      diabetes_mellitus: std.includes("diabetes_mellitus"),
+                      grand_multiparity: std.includes("grand_multiparity"),
+                      advanced_maternal_age: std.includes("advanced_maternal_age"),
+                      multiple_pregnancy: std.includes("multiple_pregnancy"),
+                      rhesus_incompatibility: std.includes("rhesus_incompatibility"),
+                      hiv_positive: std.includes("hiv_positive"),
+                      severe_anaemia: std.includes("severe_anaemia"),
+                      previous_pph: std.includes("previous_pph"),
+                    },
+                  }));
+                }}
+              />
             </Card>
           </div>
         )}
