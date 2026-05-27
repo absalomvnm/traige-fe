@@ -161,7 +161,7 @@ export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
             onChange={handleChange("lastName")} />
           <Sel
             label="Profession"
-            opts={["Midwife", "Doctor", "Midwifery Specialist", "Accoucheur", "Nursing Specialist"].map(v => ({ v, lb: v }))}
+            opts={["Midwife", "Doctor", "Midwifery Specialist"].map(v => ({ v, lb: v }))}
             value={formData.prof}
             onChange={handleChange("prof")}
           />
