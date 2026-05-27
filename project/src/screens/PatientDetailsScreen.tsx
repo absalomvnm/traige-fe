@@ -30,7 +30,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
   const [showProcedures, setShowProcedures] = useState(false);
   const [procedures, setProcedures] = useState<ManagementProcedure[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(false);
-  const [urinalysis, setUrinalysis] = useState<{ protein?: string; leukocytes?: string; haematuria?: string } | null>(null);
+  const [urinalysis, setUrinalysis] = useState<{ protein?: string; leukocytes?: string; haematuria?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; pH?: string } | null>(null);
   const [urinalysisLoading, setUrinalysisLoading] = useState(true);
   const [checklistLoading, setChecklistLoading] = useState(true);
   const [ctgScansLoading, setCtgScansLoading] = useState(true);
@@ -494,7 +494,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".055s" }}>
             <SectionLabel mb={12}>Urinalysis</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {(["Protein", "Leukocytes", "Haematuria"] as const).map(key => {
+              {(["Protein", "Leukocytes", "Haematuria", "Blood", "Nitrite", "Glucose", "SG", "Bilirubin", "pH"] as const).map(key => {
                 const val = urinalysis[key.toLowerCase() as keyof typeof urinalysis];
                 const absent = !val || val === "none";
                 return (
