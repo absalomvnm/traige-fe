@@ -69,7 +69,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
           Glucose: fromApi(u.glucose),
           SG: fromApi(u.sg),
           Bilirubin: fromApi(u.bilirubin),
-          pH: fromApi(u.pH),
+          ph: fromApi(u.ph),
         }));
       })
       .catch(() => { /* no urinalysis yet — leave fields blank */ });
@@ -215,7 +215,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
       glucose: toUrineVal(f.Glucose),
       sg: f.SG ? String(f.SG) : undefined,
       bilirubin: toUrineVal(f.Bilirubin),
-      pH: f.pH ? String(f.pH) : undefined,
+      ph: f.ph ? String(f.ph) : undefined,
     };
 
     // Run each persist in order; swallow + log individual failures so a later
@@ -815,7 +815,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                 <ComboSel label="Glucose" opts={[1, 2, 3].map((v) => ({ v: String(v), lb: `${v}+` }))} value={f.Glucose} onChange={s("Glucose")} />
                 <ComboSel label="SG" opts={['1.000', '1.005', '1.010', '1.015'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.SG} onChange={s("SG")} />  
                 <ComboSel label="Bilirubin" opts={['Neg',1, 2, 3].map((v) => ({ v: String(v), lb: v === 'Neg' ? 'Neg' : `${v}+` }))} value={f.Bilirubin} onChange={s("Bilirubin")} />
-                <ComboSel label="pH" opts={['5', '6', '6.5', '7'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.pH} onChange={s("pH")} />         
+                <ComboSel label="pH" opts={['5', '6', '6.5', '7'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.ph} onChange={s("ph")} />         
               </div>
 
               {/* Divider between Urinalysis and Vital Signs Notes */}
