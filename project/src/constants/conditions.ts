@@ -20,6 +20,14 @@ export const CONDITIONS: ConditionOption[] = [
   { v: "moderate_regular_contractions", lb: "Moderate regular contractions" },
   { v: "severe_regular_contractions", lb: "Severe regular contractions" },
   { v: "irregular_contractions", lb: "Irregular contractions" },
+  { v: "severe_headache", lb: "Severe headache" },
+  { v: "frontal_headache", lb: "Frontal headache" },
+  { v: "chills", lb: "Chills" },
+  { v: "chest_pain", lb: "Chest pain" },
+  { v: "fever", lb: "Fever" },
+  { v: "swelling_of_face", lb: "Swelling of Face" },
+  { v: "peripheral_oedema", lb: "Peripheral oedema" },
+  { v: "dizziness", lb: "Dizziness" },
 ];
 
 export const CONDITION_LABELS = CONDITIONS.reduce(
