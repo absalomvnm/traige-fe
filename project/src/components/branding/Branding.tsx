@@ -1,8 +1,8 @@
-import { C } from "../../constants/theme";
-import TriageLogo from "../../assets/triage-logo.svg";
 import BabyFeet from "../../assets/baby-feet.svg";
+import TriageLogo from "../../assets/triage-logo.svg";
+import { C } from "../../constants/theme";
 
-export function Logo({ size = 36, white = false }: any) {
+export function Logo({ size = 39, white = false }: any) {
   const g = white ? "#fff" : C.green;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 1 }}>

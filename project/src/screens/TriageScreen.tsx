@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { MultiConditionSelect } from "../components/MultiConditionSelect";
-import { IconArrowLeft, IconArrowRight, IconBolt, IconCheck, IconHeartPulse, IconPill, IconSiren, IconStethoscope, IconTestTube, IconUser, IconWarning } from "../components/icons";
+import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
+import { IconArrowLeft, IconArrowRight, IconBolt, IconHeartPulse, IconPill, IconSiren, IconStethoscope, IconTestTube, IconUser, IconWarning } from "../components/icons";
 import { Btn, Card, ComboSel, Hdr, Inp, SectionLabel, Sel, Txt } from "../components/ui";
 import { STEPS } from "../constants/options";
 import { C, pBg, pC } from "../constants/theme";
 import { patientService } from "../services/Patientservice";
 import { buildAssessmentForm, formatCellNumber, parseSAID, validateCellNumber } from "../utils/helpers";
 import { calcPriority, getRealtimeVitalAlerts } from "../utils/triage";
-import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
 
 // Signs & symptoms condition keys — used in both step-2 persist and go()-fallback
 const SS_KEYS = [
@@ -564,7 +564,7 @@ const IMPRESSION_MAP: Record<string, string> = {
       <div style={{ background: C.bg, padding: "10px 12px", display: "flex", gap: 6, overflowX: "auto", flexShrink: 0, borderBottom: `1px solid ${C.border}` }}>
         {STEPS.map((st, i) => (
           <div key={st} onClick={() => setStep(i + 1)} style={{
-            padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap", transition: "all .15s",
+            padding: "6px 12px", borderRadius: 20, fontSize: 15, fontWeight: 600, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap", transition: "all .15s",
             background: step === i + 1 ? C.gradGreen : step > i + 1 ? C.greenL : "transparent",
             color: step === i + 1 ? "white" : step > i + 1 ? C.green : C.textMuted,
             border: `1.5px solid ${step === i + 1 ? C.green : step > i + 1 ? C.greenL : C.border}`,
@@ -578,8 +578,8 @@ const IMPRESSION_MAP: Record<string, string> = {
       <div className="fade-in" style={{ flex: 1, padding: "16px 14px 100px", overflowY: "auto" }}>
         {initialData?.id && (
           <div className="fade-up" style={{ background: C.purpleL, border: `1.5px solid ${C.purpleM}30`, borderRadius: 14, padding: "12px 14px", marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: C.purple, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Re-triage in Progress</div>
-            <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.6 }}>Updating existing assessment. Adjust findings and regenerate priority.</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.purple, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Re-triage in Progress</div>
+            <div style={{ fontSize: 16, color: C.textMid, lineHeight: 1.6 }}>Updating existing assessment. Adjust findings and regenerate priority.</div>
           </div>
         )}
 
@@ -600,11 +600,11 @@ const IMPRESSION_MAP: Record<string, string> = {
                       setCellError(validateCellNumber(formatted));
                     }}
                   />
-                  {cellError && <div style={{ fontSize: 11, color: "#DC2626", marginTop: -10, marginBottom: 8, paddingLeft: 2 }}>{cellError}</div>}
+                  {cellError && <div style={{ fontSize: 14, color: "#DC2626", marginTop: -10, marginBottom: 8, paddingLeft: 2 }}>{cellError}</div>}
                 </div>
                 <div>
                   <Inp label="ID / Passport Number" placeholder="9205146710904 or AB123456" value={f.idNumber} onChange={(e: any) => { const val = e.target.value; sf((p: any) => ({ ...p, idNumber: val })); const clean = val.replace(/\s/g, ""); if (clean.length >= 5) { const r = parseSAID(val); setIdError(r.valid ? null : (r.error ?? "Invalid ID / Passport")); } else { setIdError(null); } }} maxLength={13} />
-                  {idError && <div style={{ fontSize: 11, color: "#DC2626", marginTop: 4, paddingLeft: 2 }}>{idError}</div>}
+                  {idError && <div style={{ fontSize: 14, color: "#DC2626", marginTop: 4, paddingLeft: 2 }}>{idError}</div>}
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -614,7 +614,7 @@ const IMPRESSION_MAP: Record<string, string> = {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <ComboSel label="Para" opts={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((v) => ({ v: String(v), lb: `P${v}` }))} value={f.para} onChange={s("para")} />
                 {(parseInt(f.para) >= 5) && (
-                  <div style={{ background: C.p1bg, border: `1.5px solid ${C.p1b}`, borderRadius: 12, padding: "12px 14px", fontSize: 13, color: C.p1, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${C.p1}25` }}>
+                  <div style={{ background: C.p1bg, border: `1.5px solid ${C.p1b}`, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: C.p1, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${C.p1}25` }}>
                     {"Multi GrandPara"}
                   </div>
                 )}
@@ -627,7 +627,7 @@ const IMPRESSION_MAP: Record<string, string> = {
           <div className="fade-up">
             <Card s={{ marginBottom: 14 }}>
               <SectionLabel color={C.green} mb={6}>Presenting Condition(s)</SectionLabel>
-              <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 12 }}>
+              <div style={{ fontSize: 15, color: C.textMuted, marginBottom: 12 }}>
                 Select all relevant presenting conditions. Priority will be based on the most urgent condition.
               </div>
               {(() => {
@@ -662,7 +662,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                             border: `1.5px solid ${active ? C.green : C.border}`,
                             background: active ? `${C.green}15` : C.bg,
                             color: active ? C.green : C.textMid,
-                            fontSize: 13,
+                            fontSize: 16,
                             fontWeight: 700,
                             cursor: "pointer",
                             transition: "all .15s",
@@ -680,7 +680,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                               alignItems: "center",
                               justifyContent: "center",
                               color: "#fff",
-                              fontSize: 10,
+                              fontSize: 13,
                               fontWeight: 900,
                               lineHeight: 1,
                             }}
@@ -704,7 +704,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                   gap: 10,
                   margin: "18px 0 14px",
                   color: C.textMuted,
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: 800,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
@@ -744,12 +744,12 @@ const IMPRESSION_MAP: Record<string, string> = {
             padding: "14px 16px",
           }}>
             <div style={{
-              fontSize: 10, fontWeight: 800, color: C.purple || "#7C3AED",
+              fontSize: 13, fontWeight: 800, color: C.purple || "#7C3AED",
               textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10,
             }}>
               Clinical Impression
             </div>
-            <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 10, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 14, color: C.textMuted, marginBottom: 10, lineHeight: 1.6 }}>
               Based on the captured signs and symptoms, the following impression(s) are indicated. This is not a definitive diagnosis — clinical judgement applies.
             </div>
             {impressions.map((imp) => (
@@ -761,7 +761,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                 border: `1px solid ${C.purpleM || "#7C3AED"}20`,
               }}>
                 <IconStethoscope size={14} color={C.purple || "#7C3AED"} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.purple || "#7C3AED" }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: C.purple || "#7C3AED" }}>
                  {imp}
                 </span>
               </div>
@@ -775,7 +775,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                 border: `1px solid ${C.purpleM || "#7C3AED"}20`,
               }}>
                 <IconWarning size={14} color={C.purple || "#7C3AED"} style={{ marginTop: 2, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: C.purple || "#7C3AED", lineHeight: 1.6 }}>
+                <span style={{ fontSize: 16, color: C.purple || "#7C3AED", lineHeight: 1.6 }}>
                   <strong>Other:</strong> {customList.join(", ")}
                 </span>
               </div>
@@ -787,7 +787,7 @@ const IMPRESSION_MAP: Record<string, string> = {
             <Card>
               <SectionLabel color={C.green} mb={14}>Vital Signs</SectionLabel>
               {activeAlertList.length > 0 && (
-                <div style={{ background: p1LiveCount > 0 ? C.p1bg : C.p2bg, border: `1.5px solid ${p1LiveCount > 0 ? C.p1b : C.p2b}`, borderRadius: 12, padding: "10px 12px", fontSize: 12, color: p1LiveCount > 0 ? C.p1 : C.p2, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${p1LiveCount > 0 ? C.p1 : C.p2}25` }}>
+                <div style={{ background: p1LiveCount > 0 ? C.p1bg : C.p2bg, border: `1.5px solid ${p1LiveCount > 0 ? C.p1b : C.p2b}`, borderRadius: 12, padding: "10px 12px", fontSize: 15, color: p1LiveCount > 0 ? C.p1 : C.p2, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${p1LiveCount > 0 ? C.p1 : C.p2}25` }}>
                   {p1LiveCount > 0 ? <IconSiren size={14} /> : <IconBolt size={14} />} Live Alert: {p1LiveCount > 0 ? `${p1LiveCount} critical threshold${p1LiveCount > 1 ? "s" : ""} crossed` : `${activeAlertList.length} abnormal vital value${activeAlertList.length > 1 ? "s" : ""} detected`}
                 </div>
               )}
@@ -822,7 +822,7 @@ const IMPRESSION_MAP: Record<string, string> = {
               {/* Divider between Urinalysis and Vital Signs Notes */}
               <div aria-hidden style={{ height: 1.5, background: `linear-gradient(to right, transparent, ${C.borderMid || "#CBD5E1"} 15%, ${C.borderMid || "#CBD5E1"} 85%, transparent)`, margin: "24px 0 18px" }} />
               <div style={{ marginTop: 16 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <label style={{ display: "block", fontSize: 17, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Vital Signs Notes
                 </label>
                 <textarea
@@ -831,16 +831,16 @@ const IMPRESSION_MAP: Record<string, string> = {
                   value={f.vitalSignsNotes || ""}
                   onChange={(e) => sf((prev) => ({ ...prev, vitalSignsNotes: e.target.value }))}
                   style={{
-                    width: "100%", padding: "12px 15px", border: `1.5px solid ${C.border}`, borderRadius: 12, fontSize: 14, color: C.text, background: C.bg,
+                    width: "100%", padding: "12px 15px", border: `1.5px solid ${C.border}`, borderRadius: 12, fontSize: 17, color: C.text, background: C.bg,
                     resize: "vertical", transition: "all .15s", boxShadow: "0 1px 3px rgba(0,0,0,.04)", lineHeight: 1.7, fontFamily: "'Outfit', 'DM Sans'",
                   }}
                 />
-                <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}>
+                <div style={{ fontSize: 14, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}>
                   Add clinical notes, trends, or additional context about vital signs
                 </div>
               </div>
-              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.85, color: C.textMid, marginTop: 6, border: `1px solid ${C.border}` }}>
-                <div style={{ fontWeight: 800, marginBottom: 6, color: C.text, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>SATS 2012 Reference</div>
+              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 15, lineHeight: 1.85, color: C.textMid, marginTop: 6, border: `1px solid ${C.border}` }}>
+                <div style={{ fontWeight: 800, marginBottom: 6, color: C.text, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>SATS 2012 Reference</div>
                 <div><span style={{ color: C.p1, fontWeight: 700 }}>P1 ·</span> BP ≥160/110 · HR &gt;140 or &lt;50 · RR &gt;60 · SpO₂ &lt;85%</div>
                 <div><span style={{ color: C.p2, fontWeight: 700 }}>P2 ·</span> BP 150/100 · HR &gt;120 · RR &gt;30 · SpO₂ &lt;90%</div>
                 <div><span style={{ color: C.p3, fontWeight: 700 }}>P3 ·</span> BP 140/90 · HR &gt;110</div>
@@ -859,12 +859,12 @@ const IMPRESSION_MAP: Record<string, string> = {
                 <Sel label="Foetal Movement" opts={[{ v: "present", lb: "Present / Normal" }, { v: "decreased", lb: "Decreased" }, { v: "absent", lb: "Absent" }]} value={f.fmov} onChange={s("fmov")} />
               </div>
               {(f.fmov === "decreased" || f.fmov === "absent") && (
-                <div style={{ background: C.p1bg, border: `1.5px solid ${C.p1b}`, borderRadius: 12, padding: "12px 14px", fontSize: 13, color: C.p1, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${C.p1}25` }}>
+                <div style={{ background: C.p1bg, border: `1.5px solid ${C.p1b}`, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: C.p1, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${C.p1}25` }}>
                   <IconSiren size={14} style={{ display: "inline-block", verticalAlign: "middle" }} /> {f.fmov === "absent" ? "Absent foetal movement — P1 EMERGENCY" : "Decreased foetal movement — escalate priority"}
                 </div>
               )}
-              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.9, color: C.textMid, marginTop: 8, border: `1px solid ${C.border}` }}>
-                <div style={{ fontWeight: 800, color: C.text, marginBottom: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>FHR Reference</div>
+              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 15, lineHeight: 1.9, color: C.textMid, marginTop: 8, border: `1px solid ${C.border}` }}>
+                <div style={{ fontWeight: 800, color: C.text, marginBottom: 6, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>FHR Reference</div>
                 <div><span style={{ color: C.p4, fontWeight: 700 }}>Normal ·</span> 140–160 bpm with good variability</div>
                 <div><span style={{ color: C.p1, fontWeight: 700 }}>P1 ·</span> FHR &lt;100 bpm or absent movement</div>
                 <div><span style={{ color: C.p2, fontWeight: 700 }}>P2 ·</span> FHR &lt;110 bpm or &gt;170 bpm</div>
@@ -882,7 +882,7 @@ const IMPRESSION_MAP: Record<string, string> = {
               <SectionLabel color={C.green} mb={14}>Vaginal Examination</SectionLabel>
               <Sel label="Cervical Dilation (cm)" opts={[{ v: "-1", lb: "Not examined" }, { v: "0", lb: "Closed" }, ...Array.from({ length: 10 }, (_, i) => ({ v: String(i + 1), lb: `${i + 1} cm` }))]} value={f.cx} onChange={s("cx")} style={vitalAlerts.cx ? { borderColor: pC(vitalAlerts.cx.priority), boxShadow: `0 0 0 3px ${pC(vitalAlerts.cx.priority)}20` } : {}} />
               {vitalAlerts.cx && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 12, padding: "5px 10px", borderRadius: 999, background: pBg(vitalAlerts.cx.priority), border: `1px solid ${pC(vitalAlerts.cx.priority)}40`, fontSize: 11, fontWeight: 700, color: pC(vitalAlerts.cx.priority) }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 12, padding: "5px 10px", borderRadius: 999, background: pBg(vitalAlerts.cx.priority), border: `1px solid ${pC(vitalAlerts.cx.priority)}40`, fontSize: 14, fontWeight: 700, color: pC(vitalAlerts.cx.priority) }}>
                   <span>{vitalAlerts.cx.priority === 1 ? <IconSiren size={12} /> : vitalAlerts.cx.priority === 2 ? <IconBolt size={12} /> : <IconWarning size={12} />}</span>
                   <span>{vitalAlerts.cx.text}</span>
                 </div>
@@ -899,14 +899,14 @@ const IMPRESSION_MAP: Record<string, string> = {
                         ? [C.p4bg, C.p4b, C.p4, "P4 — Early / Latent Phase"]
                         : ["#F9FAFB", C.border, C.textMuted, "Cervical dilation recorded"];
                 return (
-                  <div style={{ background: bg, border: `1.5px solid ${brd}`, borderRadius: 12, padding: "12px 14px", fontSize: 13, color: col, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${col}20` }}>{msg}</div>
+                  <div style={{ background: bg, border: `1.5px solid ${brd}`, borderRadius: 12, padding: "12px 14px", fontSize: 16, color: col, fontWeight: 700, marginBottom: 12, boxShadow: `0 2px 8px ${col}20` }}>{msg}</div>
                 );
               })()}
               <div style={{ marginTop: 14 }}>
                 <Txt label="Vaginal Examination Notes" rows={4} placeholder="Document any observations while cervical examination is conducted" value={f.vaginalNotes || ""} onChange={s("vaginalNotes")} />
               </div>
-              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.9, color: C.textMid, marginTop: 8, border: `1px solid ${C.border}` }}>
-                <div style={{ fontWeight: 800, color: C.text, marginBottom: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>Dilation Reference</div>
+              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 15, lineHeight: 1.9, color: C.textMid, marginTop: 8, border: `1px solid ${C.border}` }}>
+                <div style={{ fontWeight: 800, color: C.text, marginBottom: 6, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>Dilation Reference</div>
                 <div><span style={{ color: C.p1, fontWeight: 700 }}>P1 ·</span> &gt;8 cm — Immediate</div>
                 <div><span style={{ color: C.p2, fontWeight: 700 }}>P2 ·</span> 8 cm — ≤10 minutes</div>
                 <div><span style={{ color: C.p3, fontWeight: 700 }}>P3 ·</span> 5–7 cm — ≤30 minutes</div>
@@ -920,7 +920,7 @@ const IMPRESSION_MAP: Record<string, string> = {
           <div className="fade-up">
             <Card>
               <SectionLabel color={C.green} mb={6}>Risk Factors</SectionLabel>
-              <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 12 }}>
+              <div style={{ fontSize: 15, color: C.textMuted, marginBottom: 12 }}>
                 Select all relevant risk factors. Priority will be adjusted based on the selections made.
               </div>
               <MultiRiskFactorSelect
@@ -959,8 +959,8 @@ const IMPRESSION_MAP: Record<string, string> = {
 
       {saveError && (
         <div style={{ position: "fixed", bottom: 76, left: 0, right: 0, width: "100%", margin: "0 auto", padding: "0 14px", zIndex: 10 }}>
-          <div style={{ background: "#FFF7ED", border: "1.5px solid #F97316", borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#9A3412", display: "flex", alignItems: "flex-start", gap: 8 }}>
-            <span style={{ flexShrink: 0, fontSize: 14 }}>⚠️</span>
+          <div style={{ background: "#FFF7ED", border: "1.5px solid #F97316", borderRadius: 12, padding: "10px 14px", fontSize: 15, color: "#9A3412", display: "flex", alignItems: "flex-start", gap: 8 }}>
+            <span style={{ flexShrink: 0, fontSize: 17 }}>⚠️</span>
             <span style={{ lineHeight: 1.6 }}>{saveError}<br /><strong>You can continue — data will be re-synced when the service is available.</strong></span>
           </div>
         </div>
@@ -990,7 +990,7 @@ const IMPRESSION_MAP: Record<string, string> = {
           : <Btn
               onClick={go}
               disabled={generating}
-              s={{ flex: 2, padding: "13px 0", background: C.p1grd, fontSize: 15, opacity: generating ? 0.75 : 1 }}
+              s={{ flex: 2, padding: "13px 0", background: C.p1grd, fontSize: 18, opacity: generating ? 0.75 : 1 }}
             >
               <IconStethoscope size={16} color="white" style={{ marginRight: 6 }} />
               {generating ? "Generating…" : "Generate Triage Result"}
@@ -1040,13 +1040,13 @@ const IMPRESSION_MAP: Record<string, string> = {
                 animation: "spin 0.9s linear infinite",
               }}
             />
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 6 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.text, marginBottom: 6 }}>
               Generating triage result
             </div>
-            <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5, minHeight: 32 }}>
+            <div style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.5, minHeight: 32 }}>
               {genStage || "Preparing assessment…"}
             </div>
-            <div style={{ fontSize: 10, color: C.textLight, marginTop: 10 }}>
+            <div style={{ fontSize: 13, color: C.textLight, marginTop: 10 }}>
               The AI classifier can take a few seconds — please don't navigate away.
             </div>
           </div>

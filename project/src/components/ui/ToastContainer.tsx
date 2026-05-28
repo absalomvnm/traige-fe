@@ -65,14 +65,14 @@ export function ToastContainer({ toasts }: ToastContainerProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: 900,
                 flexShrink: 0,
               }}
             >
               {ICONS[t.variant]}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: col.text, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, color: col.text, lineHeight: 1.4 }}>
               {t.message}
             </div>
           </div>

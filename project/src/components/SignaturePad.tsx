@@ -1,7 +1,7 @@
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { C } from "../constants/theme";
-import { Inp, Btn } from "./ui";
+import { Btn, Inp } from "./ui";
 
 interface SignatureData {
   doctorName: string;
@@ -105,14 +105,14 @@ export function SignaturePad({ title, description, accentColor, accentGradient, 
 
   return (
     <div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.6, marginBottom: 14 }}>{description}</div>
+      <div style={{ fontSize: 17, fontWeight: 800, color: C.text, marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.6, marginBottom: 14 }}>{description}</div>
 
       <Inp label="Doctor Name" value={doctorName} onChange={(e: any) => setDoctorName(e.target.value)} placeholder="Dr. Full Name" readOnly={readOnlyCreds} style={readOnlyCreds ? { background: C.bgDeep, color: C.textMid, cursor: "not-allowed" } : undefined} />
       <Inp label="HPCSA Number" value={hpcsaNumber} onChange={(e: any) => setHpcsaNumber(e.target.value)} placeholder="MP 0000000" readOnly={readOnlyCreds} style={readOnlyCreds ? { background: C.bgDeep, color: C.textMid, cursor: "not-allowed" } : undefined} />
 
       <div style={{ marginBottom: 6 }}>
-        <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Signature</label>
+        <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Signature</label>
         <div style={{ border: `2px solid ${isEmpty ? C.border : accentColor}`, borderRadius: 12, overflow: "hidden", background: "#fff", transition: "border-color .2s" }}>
           <SignatureCanvas
             ref={sigRef}
@@ -125,7 +125,7 @@ export function SignaturePad({ title, description, accentColor, accentGradient, 
           <button
             onClick={handleClear}
             style={{
-              border: "none", background: "transparent", color: C.textMuted, fontSize: 12,
+              border: "none", background: "transparent", color: C.textMuted, fontSize: 15,
               fontWeight: 600, cursor: "pointer", padding: "4px 8px", borderRadius: 6,
               transition: "color .15s",
             }}
@@ -176,7 +176,7 @@ export function SignaturePad({ title, description, accentColor, accentGradient, 
             background: "#FEE2E2",
             border: "1px solid #DC262640",
             color: "#991B1B",
-            fontSize: 12,
+            fontSize: 15,
             fontWeight: 600,
             lineHeight: 1.5,
           }}
@@ -193,14 +193,14 @@ export function SignaturePad({ title, description, accentColor, accentGradient, 
             background: "#ECFDF5",
             border: "1px solid #05966940",
             color: "#065F46",
-            fontSize: 12,
+            fontSize: 15,
             fontWeight: 600,
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          <span style={{ fontSize: 14 }}>✓</span>
+          <span style={{ fontSize: 17 }}>✓</span>
           Signature saved successfully.
         </div>
       )}
@@ -219,14 +219,14 @@ export function SignatureDisplay({ data, accentColor, label }: SignatureDisplayP
     <div style={{ background: C.bgDeep, border: `1px solid ${accentColor}30`, borderRadius: 14, padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <div style={{ width: 8, height: 8, borderRadius: "50%", background: accentColor, boxShadow: `0 0 6px ${accentColor}60` }} />
-        <div style={{ fontSize: 12, fontWeight: 700, color: accentColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: accentColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{data.doctorName}</div>
-      <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>HPCSA: {data.hpcsaNumber}</div>
+      <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{data.doctorName}</div>
+      <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2 }}>HPCSA: {data.hpcsaNumber}</div>
       <div style={{ marginTop: 10, borderRadius: 8, overflow: "hidden", border: `1px solid ${C.border}`, background: "#fff" }}>
         <img src={data.signatureDataUrl} alt="Doctor signature" style={{ width: "100%", height: 80, objectFit: "contain", display: "block" }} />
       </div>
-      <div style={{ fontSize: 11, color: C.textMuted, marginTop: 8, fontStyle: "italic" }}>Signed {data.timestamp}</div>
+      <div style={{ fontSize: 14, color: C.textMuted, marginTop: 8, fontStyle: "italic" }}>Signed {data.timestamp}</div>
     </div>
   );
 }

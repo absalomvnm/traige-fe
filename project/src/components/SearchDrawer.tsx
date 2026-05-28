@@ -105,10 +105,10 @@ export function SearchDrawer({
           }}
         >
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.text }}>
               Search Patient Files
             </div>
-            <div style={{ fontSize: 12, color: C.textMuted }}>
+            <div style={{ fontSize: 15, color: C.textMuted }}>
               Retrieve records across active triage queue and non-queue patient files
             </div>
           </div>
@@ -123,7 +123,7 @@ export function SearchDrawer({
               width: 34,
               height: 34,
               cursor: "pointer",
-              fontSize: 16,
+              fontSize: 19,
               color: C.textMid,
             }}
           >
@@ -175,7 +175,7 @@ export function SearchDrawer({
                 background: filter === value ? C.greenL : C.bg,
                 borderRadius: 999,
                 padding: "7px 12px",
-                fontSize: 12,
+                fontSize: 15,
                 fontWeight: 700,
                 color: filter === value ? C.green : C.textMid,
                 cursor: "pointer",
@@ -211,10 +211,10 @@ export function SearchDrawer({
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>
                     {fullName(patient)}
                   </div>
-                  <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>
+                  <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2 }}>
                     {patient.cond} · {patient.location} · {patient.inQueue ? "Queue" : "File"}
                   </div>
                 </div>
@@ -252,13 +252,13 @@ export function SearchDrawer({
                 }}
               >
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: C.text }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>
                     {fullName(patient)}
                   </div>
-                  <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>
+                  <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2 }}>
                     {patient.cond || "No active condition captured"}
                   </div>
-                  <div style={{ fontSize: 11, color: C.textLight, marginTop: 2 }}>
+                  <div style={{ fontSize: 14, color: C.textLight, marginTop: 2 }}>
                     ID {patient.id} · {patient.location} · {patient.status} ·{" "}
                     {patient.inQueue ? "Queue" : "File"}
                   </div>
@@ -278,7 +278,7 @@ export function SearchDrawer({
                 border: `1px solid ${C.border}`,
                 borderRadius: 14,
                 padding: "14px 12px",
-                fontSize: 12,
+                fontSize: 15,
                 color: C.textMuted,
               }}
             >

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { C } from "../constants/theme";
 import { Hdr } from "../components/ui";
+import { C } from "../constants/theme";
 import { resolveConditionName } from "../services/catalogService";
 
 interface ReportsScreenProps {
@@ -394,21 +394,21 @@ All triage decisions remain responsibility of attending clinician.
           <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -60, left: -20, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,.06)", pointerEvents: "none" }} />
           <div style={{ position: "relative", zIndex: 1 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,.75)", letterSpacing: ".14em", textTransform: "uppercase" }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,.75)", letterSpacing: ".14em", textTransform: "uppercase" }}>
               Today's Activity
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
-              <div style={{ fontSize: 44, fontWeight: 900, color: "white", lineHeight: 1, letterSpacing: "-.02em" }}>{total}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,.85)" }}>patients triaged</div>
+              <div style={{ fontSize: 47, fontWeight: 900, color: "white", lineHeight: 1, letterSpacing: "-.02em" }}>{total}</div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "rgba(255,255,255,.85)" }}>patients triaged</div>
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.75)", marginTop: 6, fontWeight: 500 }}>{today}</div>
+            <div style={{ fontSize: 15, color: "rgba(255,255,255,.75)", marginTop: 6, fontWeight: 500 }}>{today}</div>
 
             {/* Mini priority bars */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginTop: 16 }}>
               {priorityBreakdown.map((b) => (
                 <div key={b.label} style={{ background: "rgba(255,255,255,.12)", backdropFilter: "blur(8px)", borderRadius: 10, padding: "8px 6px", border: "1px solid rgba(255,255,255,.18)" }}>
-                  <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,.7)", letterSpacing: ".08em" }}>{b.label}</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "white", lineHeight: 1.1, marginTop: 2 }}>{b.count}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,.7)", letterSpacing: ".08em" }}>{b.label}</div>
+                  <div style={{ fontSize: 21, fontWeight: 900, color: "white", lineHeight: 1.1, marginTop: 2 }}>{b.count}</div>
                   <div style={{ height: 3, background: "rgba(255,255,255,.18)", borderRadius: 2, marginTop: 5, overflow: "hidden" }}>
                     <div style={{ width: `${(b.count / maxCount) * 100}%`, height: "100%", background: b.color, borderRadius: 2, transition: "width .4s" }} />
                   </div>
@@ -420,10 +420,10 @@ All triage decisions remain responsibility of attending clinician.
 
         {/* Section title */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 2px" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.textMuted, letterSpacing: ".12em", textTransform: "uppercase" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.textMuted, letterSpacing: ".12em", textTransform: "uppercase" }}>
             Choose Report Type
           </div>
-          <div style={{ fontSize: 10, color: C.textLight, fontWeight: 600 }}>{reports.length} templates</div>
+          <div style={{ fontSize: 13, color: C.textLight, fontWeight: 600 }}>{reports.length} templates</div>
         </div>
 
         {/* Modern report cards */}
@@ -464,7 +464,7 @@ All triage decisions remain responsibility of attending clinician.
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 22,
+                      fontSize: 25,
                       flexShrink: 0,
                       boxShadow: active ? "0 6px 14px rgba(0,0,0,.18)" : "0 3px 8px rgba(0,0,0,.10)",
                     }}
@@ -472,8 +472,8 @@ All triage decisions remain responsibility of attending clinician.
                     {r.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14, color: C.text, letterSpacing: "-.005em" }}>{r.title}</div>
-                    <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
+                    <div style={{ fontWeight: 800, fontSize: 17, color: C.text, letterSpacing: "-.005em" }}>{r.title}</div>
+                    <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
                   </div>
                   <div
                     style={{
@@ -496,8 +496,8 @@ All triage decisions remain responsibility of attending clinician.
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginTop: 12, paddingTop: 12, borderTop: `1px dashed ${C.border}` }}>
                     {r.stats.map((s, i) => (
                       <div key={i} style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 16, fontWeight: 900, color: C.text, lineHeight: 1 }}>{s.v}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: C.textMuted, marginTop: 3, letterSpacing: ".04em", textTransform: "uppercase" }}>{s.l}</div>
+                        <div style={{ fontSize: 19, fontWeight: 900, color: C.text, lineHeight: 1 }}>{s.v}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: C.textMuted, marginTop: 3, letterSpacing: ".04em", textTransform: "uppercase" }}>{s.l}</div>
                       </div>
                     ))}
                   </div>
@@ -522,7 +522,7 @@ All triage decisions remain responsibility of attending clinician.
                 border: "none",
                 background: done ? C.gradGreen : (sel?.gradient ?? C.gradPurple),
                 color: "white",
-                fontSize: 14,
+                fontSize: 17,
                 fontWeight: 800,
                 letterSpacing: ".02em",
                 cursor: generating ? "wait" : "pointer",
@@ -576,12 +576,12 @@ All triage decisions remain responsibility of attending clinician.
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: sel?.gradient ?? C.gradPurple, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "white" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: sel?.gradient ?? C.gradPurple, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, color: "white" }}>
                 {sel?.icon}
               </div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: C.text, lineHeight: 1.1 }}>Report Preview</div>
-                <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginTop: 2 }}>{sel?.title}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.text, lineHeight: 1.1 }}>Report Preview</div>
+                <div style={{ fontSize: 13, color: C.textMuted, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", marginTop: 2 }}>{sel?.title}</div>
               </div>
             </div>
 
@@ -610,7 +610,7 @@ All triage decisions remain responsibility of attending clinician.
                   borderRadius: 10,
                   fontWeight: 700,
                   cursor: "pointer",
-                  fontSize: 12,
+                  fontSize: 15,
                   boxShadow: "0 4px 10px rgba(37,99,235,.25)",
                   display: "inline-flex",
                   alignItems: "center",
@@ -640,7 +640,7 @@ All triage decisions remain responsibility of attending clinician.
                   borderRadius: 10,
                   fontWeight: 700,
                   cursor: "pointer",
-                  fontSize: 12,
+                  fontSize: 15,
                   boxShadow: "0 4px 10px rgba(22,163,74,.25)",
                   display: "inline-flex",
                   alignItems: "center",
@@ -661,7 +661,7 @@ All triage decisions remain responsibility of attending clinician.
                   borderRadius: 10,
                   fontWeight: 700,
                   cursor: "pointer",
-                  fontSize: 12,
+                  fontSize: 15,
                 }}
               >
                 ✕

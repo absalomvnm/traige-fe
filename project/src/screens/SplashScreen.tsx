@@ -144,7 +144,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
         className="fade-up"
         style={{
           animationDelay: ".12s",
-          fontSize: 11,
+          fontSize: 14,
           color: "rgba(255,255,255,.45)",
           letterSpacing: "0.22em",
           textTransform: "uppercase",
@@ -172,7 +172,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
       >
         <div
           style={{
-            fontSize: 20,
+            fontSize: 23,
             fontWeight: 800,
             color: "#ffffff",
             lineHeight: 1.35,
@@ -182,7 +182,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
         >
           Midwife-led Obstetric Triage
         </div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,.55)", lineHeight: 1.75 }}>
+        <div style={{ fontSize: 16, color: "rgba(255,255,255,.55)", lineHeight: 1.75 }}>
           Co-designed for South African public maternity units · SATS 2012 &amp; National DoH 2023
         </div>
       </div>
@@ -255,7 +255,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
           full
           onClick={handleLogin}
           disabled={!isFormValid || isLoading}
-          s={{ padding: "15px 0", fontSize: 16, borderRadius: 14, letterSpacing: ".01em", marginTop: 4 }}
+          s={{ padding: "15px 0", fontSize: 19, borderRadius: 14, letterSpacing: ".01em", marginTop: 4 }}
         >
           {isLoading ? "Authenticating..." : "Log In"}
         </Btn>
@@ -265,7 +265,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
           onClick={() => onNav("register")}
           s={{
             padding: "14px 0",
-            fontSize: 15,
+            fontSize: 18,
             borderRadius: 14,
             borderColor: "rgba(255,255,255,.25)",
             color: "rgba(255,255,255,.85)",
@@ -278,7 +278,7 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
       <div
         style={{
           marginTop: 28,
-          fontSize: 11,
+          fontSize: 14,
           color: "rgba(255,255,255,.28)",
           letterSpacing: "0.05em",
         }}

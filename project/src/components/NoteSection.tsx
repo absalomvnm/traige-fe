@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { C } from "../constants/theme";
-import { Btn, Txt, SectionLabel } from "./ui";
-import { IconCheck, IconClose } from "./icons";
-import { patientService } from "../services/Patientservice";
 import type { NoteResponse, NoteType } from "../services/Patientservice";
+import { patientService } from "../services/Patientservice";
+import { IconCheck, IconClose } from "./icons";
+import { Btn, SectionLabel, Txt } from "./ui";
 
 interface NoteSectionProps {
   title: string;
@@ -210,7 +210,7 @@ export function NoteSection({
                 >
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: 17,
                       color: C.textMuted,
                       fontWeight: 600,
                     }}
@@ -229,7 +229,7 @@ export function NoteSection({
                           border: "none",
                           background: "transparent",
                           color: C.textMuted,
-                          fontSize: 11,
+                          fontSize: 17,
                           fontWeight: 700,
                           cursor: busy ? "not-allowed" : "pointer",
                           padding: "2px 6px",
@@ -272,7 +272,7 @@ export function NoteSection({
                         s={{
                           flex: 1,
                           padding: "8px 0",
-                          fontSize: 12,
+                          fontSize: 18,
                           opacity: busy ? 0.6 : 1,
                         }}
                       >
@@ -286,7 +286,7 @@ export function NoteSection({
                       <Btn
                         variant="ghost"
                         onClick={cancelEdit}
-                        s={{ flex: 1, padding: "8px 0", fontSize: 12 }}
+                        s={{ flex: 1, padding: "8px 0", fontSize: 18 }}
                       >
                         Cancel
                       </Btn>
@@ -295,7 +295,7 @@ export function NoteSection({
                 ) : (
                   <div
                     style={{
-                      fontSize: 13,
+                      fontSize: 19,
                       color: C.text,
                       lineHeight: 1.6,
                       whiteSpace: "pre-wrap",
@@ -315,7 +315,7 @@ export function NoteSection({
                 border: "none",
                 background: "transparent",
                 color: accentColor,
-                fontSize: 12,
+                fontSize: 18,
                 fontWeight: 700,
                 cursor: "pointer",
                 padding: "4px 2px",

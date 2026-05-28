@@ -182,7 +182,7 @@ export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
             onChange={handleCellChange}
           />
           {cellError && (
-            <div style={{ fontSize: 11, color: "#DC2626", marginTop: 6, marginBottom: 8, paddingLeft: 2 }}>
+            <div style={{ fontSize: 14, color: "#DC2626", marginTop: 6, marginBottom: 8, paddingLeft: 2 }}>
               {cellError}
             </div>
           )}
@@ -273,7 +273,7 @@ export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
                 padding: "10px 12px",
                 borderRadius: 10,
                 border: "1px solid rgba(220, 38, 38, 0.25)",
-                fontSize: 13,
+                fontSize: 16,
                 marginBottom: 10,
                 whiteSpace: "pre-line",
               }}
@@ -290,7 +290,7 @@ export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
                 padding: "10px 12px",
                 borderRadius: 10,
                 border: "1px solid rgba(22, 163, 74, 0.25)",
-                fontSize: 13,
+                fontSize: 16,
                 marginBottom: 10,
               }}
             >
@@ -310,7 +310,7 @@ export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
           >
             {isLoading ? "Creating Account..." : "Create Account"}
           </Btn>
-          <div style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: C.textMuted }}>
+          <div style={{ textAlign: "center", marginTop: 16, fontSize: 16, color: C.textMuted }}>
             Already registered?{" "}
             <span
               style={{ color: C.green, fontWeight: 700, cursor: "pointer" }}

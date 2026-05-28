@@ -20,9 +20,9 @@ interface TriageBadgeProps {
 }
 
 const SIZE_MAP = {
-  sm: { num: 13, label: 10, pad: "2px 9px", radius: 8 },
-  md: { num: 18, label: 11, pad: "4px 12px", radius: 10 },
-  lg: { num: 42, label: 14, pad: "6px 18px", radius: 14 },
+  sm: { num: 16, label: 13, pad: "2px 9px", radius: 8 },
+  md: { num: 21, label: 14, pad: "4px 12px", radius: 10 },
+  lg: { num: 45, label: 17, pad: "6px 18px", radius: 14 },
 };
 
 export function TriageBadge({ finalPriorityId: id, size = "md", style }: TriageBadgeProps) {

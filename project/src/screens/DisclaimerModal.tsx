@@ -41,22 +41,22 @@ export function DisclaimerModal({ onAccept }: DisclaimerModalProps) {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>Clinical Disclaimer</div>
-              <div style={{ fontSize: 11, color: "#888", marginTop: 1 }}>ObSAtriage · Please read carefully</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#111" }}>Clinical Disclaimer</div>
+              <div style={{ fontSize: 14, color: "#888", marginTop: 1 }}>ObSAtriage · Please read carefully</div>
             </div>
           </div>
 
-          <div style={{ fontSize: 13, color: "#444", lineHeight: 1.7, marginBottom: 14 }}>
+          <div style={{ fontSize: 16, color: "#444", lineHeight: 1.7, marginBottom: 14 }}>
             The assumption behind the developed MTS is that <strong>Midwives function as critical thinkers and independent practitioners.</strong> Therefore, they hold immense knowledge of midwifery care and have in-depth knowledge of obstetric emergencies.
           </div>
 
           <div style={{ background: "#FAFAE8", borderRadius: 10, padding: "12px 14px", marginBottom: 14, borderLeft: "3px solid #D8D365" }}>
-            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.75 }}>
+            <div style={{ fontSize: 15, color: "#555", lineHeight: 1.75 }}>
               This means that in some instances, the midwives can <strong>disregard the digital triage system</strong> upon their own professional instinct and discretion to save a patient's life in a dire need of emergency obstetric care.
             </div>
           </div>
 
-          <div style={{ fontSize: 11, color: "#666", lineHeight: 1.6, padding: "10px 12px", border: "0.5px solid #e5e5e5", borderRadius: 10 }}>
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.6, padding: "10px 12px", border: "0.5px solid #e5e5e5", borderRadius: 10 }}>
             By continuing, you confirm you are a registered healthcare professional and acknowledge that this tool supports — but does not replace — your clinical judgement and professional discretion.
           </div>
         </div>

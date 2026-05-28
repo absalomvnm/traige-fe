@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { C, pC, pLbl } from "../constants/theme";
-import { SectionLabel, StatusChip } from "./ui";
-import { buildDecisionSummary } from "../utils/triage";
-import { obstetricConditionById, obstetricConditionByCode, priorityColor } from "../services/catalogService";
+import { obstetricConditionByCode, obstetricConditionById, priorityColor } from "../services/catalogService";
 import type { ObstetricConditionResult } from "../services/Patientservice";
+import { buildDecisionSummary } from "../utils/triage";
+import { SectionLabel, StatusChip } from "./ui";
 
 interface DecisionExplanationProps {
   source: any;
@@ -108,7 +108,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
       </div>
       <div
         style={{
-          fontSize: 13,
+          fontSize: 16,
           color: C.textMid,
           lineHeight: 1.65,
           marginBottom: 10,
@@ -129,7 +129,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
           >
             <div
               style={{
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: 800,
                 color: C.textMuted,
                 textTransform: "uppercase",
@@ -140,7 +140,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
             </div>
             <span
               style={{
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: 800,
                 color: condColor,
                 background: `${condColor}15`,
@@ -178,7 +178,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span
                       style={{
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: 800,
                         color: C.text,
                         letterSpacing: "-.005em",
@@ -189,7 +189,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
                     </span>
                     <div
                       style={{
-                        fontSize: 10.5,
+                        fontSize: 13.5,
                         color: C.textMuted,
                         marginTop: 3,
                         display: "flex",
@@ -206,7 +206,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
                   </div>
                   <span
                     style={{
-                      fontSize: 9.5,
+                      fontSize: 12.5,
                       fontWeight: 900,
                       color: s.text,
                       background: s.bg,
@@ -231,7 +231,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
             <span
               key={`${driver}-${i}`}
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 700,
                 color: C.textMid,
                 background: C.bgDeep,
@@ -254,7 +254,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
           background: C.bgSoft,
           borderRadius: 10,
           padding: "8px 10px",
-          fontSize: 12,
+          fontSize: 15,
           fontWeight: 700,
           color: C.textMid,
           cursor: "pointer",
@@ -275,7 +275,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 800,
                 color: C.textMuted,
                 textTransform: "uppercase",
@@ -285,7 +285,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
             >
               Triggered Rules
             </div>
-            <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.7 }}>
               {summary.triggeredRules.length
                 ? summary.triggeredRules
                     .map((rule) => `P${rule.priority}: ${rule.text}`)
@@ -303,7 +303,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 800,
                 color: C.textMuted,
                 textTransform: "uppercase",
@@ -313,7 +313,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
             >
               Clinical Inputs Used
             </div>
-            <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.7 }}>
               {summary.dataUsed.map(([k, v]) => `${k}: ${v}`).join(" · ")}
             </div>
           </div>
@@ -327,7 +327,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 800,
                 color: C.textMuted,
                 textTransform: "uppercase",
@@ -337,7 +337,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
             >
               Missing / Low Confidence Inputs
             </div>
-            <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.7 }}>
               {summary.missingInputs.length
                 ? summary.missingInputs.join(" · ")
                 : "No major missing input fields detected."}
@@ -353,7 +353,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 800,
                 color: C.textMuted,
                 textTransform: "uppercase",
@@ -363,7 +363,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
             >
               How Priority Could Change
             </div>
-            <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.7 }}>
               {summary.shiftHints.join(" · ")}
             </div>
           </div>
@@ -378,7 +378,7 @@ export function DecisionExplanation({ source, priority }: DecisionExplanationPro
                   ? "Rule engine"
                   : "Rule engine";
             return (
-              <div style={{ fontSize: 11, color: C.textLight }}>
+              <div style={{ fontSize: 14, color: C.textLight }}>
                 Decision source: {sourceLabel}
                 {mode && ` · Mode: ${mode}`}
               </div>

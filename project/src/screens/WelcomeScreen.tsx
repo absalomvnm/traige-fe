@@ -91,12 +91,12 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
         <div style={{ position: "absolute", bottom: -20, left: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,.05)", pointerEvents: "none" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,.65)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Welcome back</div>
-            <div style={{ fontSize: 23, fontWeight: 900, color: "white", marginTop: 3, letterSpacing: "-.02em" }}>{displayName}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.7)", marginTop: 3, fontWeight: 500 }}>{displayRole} · {displayHospital}</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,.65)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Welcome back</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "white", marginTop: 3, letterSpacing: "-.02em" }}>{displayName}</div>
+            <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", marginTop: 3, fontWeight: 500 }}>{displayRole} · {displayHospital}</div>
           </div>
         </div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,.55)", marginTop: 10, fontWeight: 500 }}>{today}</div>
+        <div style={{ fontSize: 15, color: "rgba(255,255,255,.55)", marginTop: 10, fontWeight: 500 }}>{today}</div>
       </div>
 
       <div style={{ padding: "0 14px 20px", marginTop: -40 }}>
@@ -104,9 +104,9 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
           {stats.map((x, i) => (
             <div key={x.l} className="fade-up card-hover" onClick={x.action} style={{ animationDelay: `${i * 0.05}s`, background: x.gradient, borderRadius: 18, padding: "18px 16px", boxShadow: "0 6px 20px rgba(0,0,0,.18)", position: "relative", overflow: "hidden", cursor: "pointer" }}>
               <div style={{ position: "absolute", top: -14, right: -14, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,.1)" }} />
-              <div style={{ fontSize: 22, marginBottom: 6 }}>{x.icon}</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: "white", lineHeight: 1 }}>{x.v}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.75)", marginTop: 5, fontWeight: 600, letterSpacing: "0.02em" }}>{x.l}</div>
+              <div style={{ fontSize: 25, marginBottom: 6 }}>{x.icon}</div>
+              <div style={{ fontSize: 35, fontWeight: 900, color: "white", lineHeight: 1 }}>{x.v}</div>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,.75)", marginTop: 5, fontWeight: 600, letterSpacing: "0.02em" }}>{x.l}</div>
             </div>
           ))}
         </div>
@@ -116,15 +116,15 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
               <div style={{ flex: 1 }}>
                 <SectionLabel mb={8}>Recent Triage</SectionLabel>
-                <div style={{ fontSize: 18, fontWeight: 800, color: C.text, letterSpacing: "-.01em" }}>{fullName(lastPatient)}</div>
-                <div style={{ fontSize: 12, color: C.textMuted, marginTop: 3 }}>{resolveConditionName(lastPatient) || lastPatient.latestAssessment?.condition || lastPatient.cond || lastPatient.condition || "—"}</div>
+                <div style={{ fontSize: 21, fontWeight: 800, color: C.text, letterSpacing: "-.01em" }}>{fullName(lastPatient)}</div>
+                <div style={{ fontSize: 15, color: C.textMuted, marginTop: 3 }}>{resolveConditionName(lastPatient) || lastPatient.latestAssessment?.condition || lastPatient.cond || lastPatient.condition || "—"}</div>
                 <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <Tag priority={lastPatient.latestAssessment?.priority ?? lastPatient.p ?? lastPatient.priority} />
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
                 <StatusChip label={lastPatient.latestAssessment?.status || lastPatient.status} tone={priorityColor(lastPatient.latestAssessment?.finalPriorityId || lastPatient.latestAssessment?.priority || lastPatient.p || lastPatient.priority) || pC(lastPatient.latestAssessment?.priority || lastPatient.p || lastPatient.priority)} />
-                <div style={{ fontSize: 11, color: C.textMuted }}>Tap to open →</div>
+                <div style={{ fontSize: 14, color: C.textMuted }}>Tap to open →</div>
               </div>
             </div>
           </div>
@@ -138,12 +138,12 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
           { icon: <IconInfo size={22} color="white" />, l: "Reports", sub: "View And Download Reports", action: () => onNav("reports"), gradient: C.gradPurple, glow: "rgba(124,58,237,.18)" },
         ].map((x, i) => (
           <div key={x.l} className="card-hover fade-up" style={{ animationDelay: `${0.12 + i * 0.05}s`, background: C.bg, borderRadius: 16, padding: "15px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 14, boxShadow: `0 3px 12px ${x.glow}`, border: `1px solid ${C.border}` }} onClick={x.action}>
-            <div style={{ width: 46, height: 46, borderRadius: 14, background: x.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, boxShadow: `0 4px 12px ${x.glow}` }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: x.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 25, flexShrink: 0, boxShadow: `0 4px 12px ${x.glow}` }}>
               {x.icon}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: C.text, letterSpacing: "-.01em" }}>{x.l}</div>
-              <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{x.sub}</div>
+              <div style={{ fontWeight: 700, fontSize: 17, color: C.text, letterSpacing: "-.01em" }}>{x.l}</div>
+              <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2 }}>{x.sub}</div>
             </div>
             <IconChevronRight size={18} color={C.textLight} />
           </div>

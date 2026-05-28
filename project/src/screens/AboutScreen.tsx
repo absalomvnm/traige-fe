@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { C, pC, pGrd } from "../constants/theme";
-import { Btn, Tag, Hdr, Card, SectionLabel } from "../components/ui";
-import { Logo, Footprints } from "../components/branding";
+import { Footprints, Logo } from "../components/branding";
 import { IconShare } from "../components/icons";
+import { Btn, Card, Hdr, SectionLabel, Tag } from "../components/ui";
+import { C, pC, pGrd } from "../constants/theme";
 
 interface AboutScreenProps {
   onNav: (screen: string) => void;
@@ -63,13 +63,13 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
             <Footprints light />
           </div>
           <Logo size={30} />
-          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 6, fontWeight: 600 }}>Midwife-Led Obstetric Triage System</div>
-          <div style={{ fontSize: 11, color: C.textLight, marginTop: 2 }}>Version 1.0 · South Africa</div>
+          <div style={{ fontSize: 15, color: C.textMuted, marginTop: 6, fontWeight: 600 }}>Midwife-Led Obstetric Triage System</div>
+          <div style={{ fontSize: 14, color: C.textLight, marginTop: 2 }}>Version 1.0 · South Africa</div>
         </Card>
 
         <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".04s" }}>
           <SectionLabel mb={10}>Purpose</SectionLabel>
-          <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.85 }}>
+          <div style={{ fontSize: 16, color: C.textMid, lineHeight: 1.85 }}>
             ObSAtriage is a co-designed, midwife-led digital triage system for South African public maternity units. It standardises emergency obstetric care pathways aligned with national guidelines (SATS 2012, National DoH 2023) to reduce maternal and perinatal mortality.
           </div>
         </Card>
@@ -77,17 +77,17 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
         <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".10s" }}>
          <SectionLabel mb={10}>Disclaimer</SectionLabel>
 
-         <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.85, marginBottom: 12 }}>
+         <div style={{ fontSize: 16, color: C.textMid, lineHeight: 1.85, marginBottom: 12 }}>
           The assumption behind the developed MTS is that <strong style={{ color: C.text }}>Midwives function as critical thinkers and independent practitioners.</strong> Therefore, they hold immense knowledge of midwifery care and have in-depth knowledge of obstetric emergencies.
          </div>
 
          <div style={{ background: "#FAFAE8", borderRadius: 10, padding: "12px 14px", marginBottom: 12, borderLeft: "3px solid #D8D365" }}>
-         <div style={{ fontSize: 12, color: "#555", lineHeight: 1.75 }}>
+         <div style={{ fontSize: 15, color: "#555", lineHeight: 1.75 }}>
           This means that in some instances, the midwives can <strong>disregard the digital triage system</strong> upon their own professional instinct and discretion to save a patient's life in a dire need of emergency obstetric care.
          </div>
          </div>
 
-         <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.6, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10 }}>
+         <div style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.6, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 10 }}>
           This tool supports — but does not replace — your clinical judgement and professional discretion.
          </div>
        </Card>
@@ -95,7 +95,7 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
        <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".14s" }}>
         <SectionLabel mb={10}>Clinical Reference</SectionLabel>
 
-          <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.85, marginBottom: 12 }}>
+          <div style={{ fontSize: 16, color: C.textMid, lineHeight: 1.85, marginBottom: 12 }}>
            For guidance on the management of obstetric conditions triaged within this system, kindly refer to the official South African Maternity Guidelines document cited below.
           </div>
 
@@ -106,8 +106,8 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
           padding: "12px 14px",
           marginBottom: 12,
           }}>
-          <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 4, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>Citation</div>
-          <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.75 }}>
+          <div style={{ fontSize: 14, color: C.textMuted, marginBottom: 4, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>Citation</div>
+          <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.75 }}>
             National Department of Health, Republic of South Africa.{" "}
             <em>Maternity Care Guidelines.</em>{" "}
             Pretoria: National DoH; 2023. Aligned with SATS 2012 obstetric triage protocols.
@@ -131,7 +131,7 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
       <line x1="16" y1="17" x2="8" y2="17"/>
       <polyline points="10 9 9 9 8 9"/>
     </svg>
-    <div style={{ fontSize: 12, color: "#166534", lineHeight: 1.7 }}>
+    <div style={{ fontSize: 15, color: "#166534", lineHeight: 1.7 }}>
       The maternity guidelines document is available for reference. Midwives are encouraged to consult it for evidence-based management of all conditions encountered during triage.
     </div>
   </div>
@@ -157,11 +157,11 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
             return (
               <div key={priority} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: idx < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <div style={{ width: 40, height: 40, borderRadius: 14, background: pGrd(priority), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 10px ${pC(priority)}40` }}>
-                  <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>P{priority}</span>
+                  <span style={{ color: "white", fontWeight: 900, fontSize: 17 }}>P{priority}</span>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{l}</div>
-                  <div style={{ fontSize: 12, color: C.textMuted }}>{t}</div>
+                  <div style={{ fontWeight: 700, fontSize: 17, color: C.text }}>{l}</div>
+                  <div style={{ fontSize: 15, color: C.textMuted }}>{t}</div>
                 </div>
                 <Tag priority={priority} />
               </div>
@@ -171,14 +171,14 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
 
         <Card className="fade-up" s={{ animationDelay: ".12s" }}>
           <SectionLabel mb={10}>Share ObSAtriage</SectionLabel>
-          <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 14, lineHeight: 1.7 }}>
+          <div style={{ fontSize: 16, color: C.textMuted, marginBottom: 14, lineHeight: 1.7 }}>
             Share this app with colleagues in your maternity unit to standardise triage across all shifts.
           </div>
-          <div style={{ background: C.bgDeep, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px", fontSize: 12, color: C.textMid, marginBottom: 12, lineHeight: 1.7 }}>
+          <div style={{ background: C.bgDeep, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px", fontSize: 15, color: C.textMid, marginBottom: 12, lineHeight: 1.7 }}>
             Preview: recipient gets app name, purpose summary, and a direct launch link.
           </div>
           <Btn variant="teal" full onClick={handleShare} s={{ padding: "14px 0" }}><IconShare size={14} color="white" style={{ marginRight: 6 }} /> Share ObSAtriage</Btn>
-          {shareFeedback && <div style={{ marginTop: 10, fontSize: 12, color: C.teal, fontWeight: 700 }}>{shareFeedback}</div>}
+          {shareFeedback && <div style={{ marginTop: 10, fontSize: 15, color: C.teal, fontWeight: 700 }}>{shareFeedback}</div>}
         </Card>
       </div>
     </div>

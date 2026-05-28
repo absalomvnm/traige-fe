@@ -96,13 +96,13 @@ export function TriageDecisionStrip({ summary }: TriageDecisionStripProps) {
         padding: "7px 12px",
       }}
     >
-      <span style={{ fontSize: 14 }}>{cfg.icon}</span>
+      <span style={{ fontSize: 17 }}>{cfg.icon}</span>
       <div style={{ flex: 1 }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: cfg.text, letterSpacing: ".04em" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: cfg.text, letterSpacing: ".04em" }}>
           {cfg.label}
         </span>
         {detail && (
-          <span style={{ fontSize: 11, color: cfg.text, opacity: 0.75, marginLeft: 6 }}>
+          <span style={{ fontSize: 14, color: cfg.text, opacity: 0.75, marginLeft: 6 }}>
             {detail}
           </span>
         )}

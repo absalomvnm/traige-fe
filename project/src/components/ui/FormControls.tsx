@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { C, pC, pBg } from "../../constants/theme";
-import { IconSiren, IconBolt, IconWarning } from "../icons";
+import { useEffect, useRef, useState } from "react";
+import { C, pBg, pC } from "../../constants/theme";
+import { IconBolt, IconSiren, IconWarning } from "../icons";
 
 export function Inp({ label, hint, alert, compact, ...p }: any) {
   return (
@@ -9,7 +9,7 @@ export function Inp({ label, hint, alert, compact, ...p }: any) {
         <label
           style={{
             display: "block",
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: 700,
             color: C.textMuted,
             marginBottom: 6,
@@ -27,7 +27,7 @@ export function Inp({ label, hint, alert, compact, ...p }: any) {
           padding: "12px 15px",
           border: `1.5px solid ${alert ? pC(alert.priority) : C.border}`,
           borderRadius: 12,
-          fontSize: 14,
+          fontSize: 17,
           color: C.text,
           background: C.bg,
           transition: "all .15s",
@@ -48,7 +48,7 @@ export function Inp({ label, hint, alert, compact, ...p }: any) {
             borderRadius: 999,
             background: pBg(alert.priority),
             border: `1px solid ${pC(alert.priority)}40`,
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: 700,
             color: pC(alert.priority),
           }}
@@ -61,7 +61,7 @@ export function Inp({ label, hint, alert, compact, ...p }: any) {
       )}
       {hint && (
         <div
-          style={{ fontSize: 11, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}
+          style={{ fontSize: 14, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}
         >
           {hint}
         </div>
@@ -77,7 +77,7 @@ export function Sel({ label, opts, ...p }: any) {
         <label
           style={{
             display: "block",
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: 700,
             color: C.textMuted,
             marginBottom: 6,
@@ -95,7 +95,7 @@ export function Sel({ label, opts, ...p }: any) {
           padding: "12px 15px",
           border: `1.5px solid ${C.border}`,
           borderRadius: 12,
-          fontSize: 14,
+          fontSize: 17,
           color: C.text,
           background: C.bg,
           cursor: "pointer",
@@ -132,7 +132,7 @@ export function ComboSel({ label, opts, value, onChange }: { label?: string; opt
   return (
     <div style={{ marginBottom: 16, position: "relative" }} ref={ref}>
       {label && (
-        <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
           {label}
         </label>
       )}
@@ -146,14 +146,14 @@ export function ComboSel({ label, opts, value, onChange }: { label?: string; opt
           placeholder="Type or select…"
           style={{
             width: "100%", padding: "12px 36px 12px 15px", border: `1.5px solid ${open ? C.teal : C.border}`, borderRadius: 12,
-            fontSize: 14, color: C.text, background: C.bg, transition: "all .15s",
+            fontSize: 17, color: C.text, background: C.bg, transition: "all .15s",
             boxShadow: open ? `0 0 0 3px ${C.teal}20` : "0 1px 3px rgba(0,0,0,.04)",
           }}
         />
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", border: "none", background: "transparent", cursor: "pointer", padding: 4, color: C.textMuted, fontSize: 12, lineHeight: 1 }}
+          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", border: "none", background: "transparent", cursor: "pointer", padding: 4, color: C.textMuted, fontSize: 15, lineHeight: 1 }}
         >
           ▾
         </button>
@@ -171,7 +171,7 @@ export function ComboSel({ label, opts, value, onChange }: { label?: string; opt
               onClick={() => { onChange({ target: { value: o.v } }); setOpen(false); setTyping(false); }}
               style={{
                 display: "block", width: "100%", textAlign: "left", padding: "10px 15px", border: "none", cursor: "pointer",
-                fontSize: 14, color: o.v === value ? C.teal : C.text, fontWeight: o.v === value ? 700 : 500,
+                fontSize: 17, color: o.v === value ? C.teal : C.text, fontWeight: o.v === value ? 700 : 500,
                 background: o.v === value ? `${C.teal}10` : "transparent", transition: "background .1s",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = `${C.teal}10`)}
@@ -193,7 +193,7 @@ export function Txt({ label, hint, rows = 4, ...p }: any) {
         <label
           style={{
             display: "block",
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: 700,
             color: C.textMuted,
             marginBottom: 6,
@@ -212,7 +212,7 @@ export function Txt({ label, hint, rows = 4, ...p }: any) {
           padding: "12px 15px",
           border: `1.5px solid ${C.border}`,
           borderRadius: 12,
-          fontSize: 14,
+          fontSize: 17,
           color: C.text,
           background: C.bg,
           resize: "vertical",
@@ -224,7 +224,7 @@ export function Txt({ label, hint, rows = 4, ...p }: any) {
       />
       {hint && (
         <div
-          style={{ fontSize: 11, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}
+          style={{ fontSize: 14, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}
         >
           {hint}
         </div>

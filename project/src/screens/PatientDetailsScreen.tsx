@@ -361,25 +361,25 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
       <div style={{ background: pGrd(p), padding: "24px 20px 60px", position: "relative", overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,.2)" }}>
         <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
-          <button onClick={() => onNav("patients")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Patient Details</span>
+          <button onClick={() => onNav("patients")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 21 }}><IconArrowLeft size={18} color="white" /></button>
+          <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Patient Details</span>
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Priority</div>
-        <div style={{ fontSize: 52, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>P{p}</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "rgba(255,255,255,.9)", marginTop: 2 }}>{pLbl(p)}</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,.7)", marginTop: 6, fontWeight: 500 }}>Target: {pTm(p)}</div>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Priority</div>
+        <div style={{ fontSize: 55, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>P{p}</div>
+        <div style={{ fontSize: 23, fontWeight: 800, color: "rgba(255,255,255,.9)", marginTop: 2 }}>{pLbl(p)}</div>
+        <div style={{ fontSize: 16, color: "rgba(255,255,255,.7)", marginTop: 6, fontWeight: 500 }}>Target: {pTm(p)}</div>
       </div>
 
       <div style={{ padding: "0 14px 20px", marginTop: -32 }}>
         <Card className="fade-up" s={{ marginBottom: 12, boxShadow: "0 6px 20px rgba(0,0,0,.1)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 6 }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: C.text, letterSpacing: "-.01em" }}>{fullName(patient)}</div>
+            <div style={{ fontSize: 23, fontWeight: 900, color: C.text, letterSpacing: "-.01em" }}>{fullName(patient)}</div>
             <StatusChip label={patient.status} tone={col} />
           </div>
-          <div style={{ fontSize: 13, color: C.textMuted }}>Age {age} yrs · GA {ga} weeks · Triaged {t}</div>
-          <div style={{ fontSize: 13, color: C.textMuted, marginTop: 1 }}>{patient.location}</div>
+          <div style={{ fontSize: 16, color: C.textMuted }}>Age {age} yrs · GA {ga} weeks · Triaged {t}</div>
+          <div style={{ fontSize: 16, color: C.textMuted, marginTop: 1 }}>{patient.location}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: col }}>{resolveConditionName(patient) || cond || "—"}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: col }}>{resolveConditionName(patient) || cond || "—"}</div>
             {(() => {
               const src = resolveConditionSource(patient);
               if (!src) return null;
@@ -390,7 +390,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               };
               const s = styles[src];
               return (
-                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".04em", padding: "2px 8px", borderRadius: 999, background: s.bg, border: `1px solid ${s.border}`, color: s.text, textTransform: "uppercase" }}>
+                <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: ".04em", padding: "2px 8px", borderRadius: 999, background: s.bg, border: `1px solid ${s.border}`, color: s.text, textTransform: "uppercase" }}>
                   {s.label}
                 </span>
               );
@@ -408,11 +408,11 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
             {(p === 1 || p === 2) && <Btn onClick={() => {
               appendTimeline("Transferred", "Escalated to labour suite for active management", col, { status: "Transferred to labour suite", location: "Labour suite", acknowledged: true });
               if (patient.assessmentId) fireApi(patientService.updateDisposition(patient.assessmentId, { status: "Transferred to labour suite", location: "Labour suite" }), "labour suite transfer");
-            }} s={{ flex: 1, padding: "11px 0", fontSize: 13 }}><IconHospital size={14} color="white" style={{ marginRight: 4 }} /> Labour Suite</Btn>}
+            }} s={{ flex: 1, padding: "11px 0", fontSize: 16}}><IconHospital size={14} color="white" style={{ marginRight: 4 }} /> Labour Suite</Btn>}
             <Btn variant="ghost" onClick={() => {
               appendTimeline("Reviewed", "Patient workflow reviewed by midwife", C.green);
               if (patient.assessmentId) fireApi(patientService.updateDisposition(patient.assessmentId, { status: patient.status, location: patient.location, reassessDue: patient.reassessDue }), "disposition save");
-            }} s={{ flex: 1, padding: "11px 0", fontSize: 13 }}>Log Review</Btn>
+            }} s={{ flex: 1, padding: "11px 0", fontSize: 16 }}>Log Review</Btn>
           </div>
         </Card>
 
@@ -464,14 +464,14 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                       {pri && (
                         <span style={{
                           position: "absolute", top: 6, right: 6,
-                          fontSize: 9, fontWeight: 900, color: "#fff",
+                          fontSize: 12, fontWeight: 900, color: "#fff",
                           background: accent, padding: "1px 5px", borderRadius: 6,
                           letterSpacing: ".05em",
                         }}>P{pri}</span>
                       )}
-                      <div style={{ fontSize: 10, color: pri ? accent : C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{k}</div>
-                      <div style={{ fontSize: 17, fontWeight: 900, color: pri ? accent : C.text, marginTop: 2 }}>{v}</div>
-                      <div style={{ fontSize: 10, color: pri ? accent : C.textLight, opacity: pri ? 0.85 : 1 }}>{u}</div>
+                      <div style={{ fontSize: 13, color: pri ? accent : C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{k}</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: pri ? accent : C.text, marginTop: 2 }}>{v}</div>
+                      <div style={{ fontSize: 13, color: pri ? accent : C.textLight, opacity: pri ? 0.85 : 1 }}>{u}</div>
                     </div>
                   );
                 })}
@@ -500,8 +500,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                 const absent = !val || val === "none";
                 return (
                   <div key={key} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${absent ? C.border : "#D8D365"}` }}>
-                    <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{key}</div>
-                    <div style={{ fontSize: 17, fontWeight: 900, color: absent ? C.textLight : "#5B5A0D", marginTop: 2 }}>{absent ? "None" : val}</div>
+                    <div style={{ fontSize: 13, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{key}</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: absent ? C.textLight : "#5B5A0D", marginTop: 2 }}>{absent ? "None" : val}</div>
                   </div>
                 );
               })}
@@ -539,7 +539,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <SectionLabel color={col} mb={0}>Management Checklist · P{p}</SectionLabel>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ fontSize: 12, color: col, fontWeight: 700, background: pBg(p), padding: "3px 10px", borderRadius: 20, border: `1px solid ${col}30` }}>{checkedCount}/{totalCount}</div>
+              <div style={{ fontSize: 15, color: col, fontWeight: 700, background: pBg(p), padding: "3px 10px", borderRadius: 20, border: `1px solid ${col}30` }}>{checkedCount}/{totalCount}</div>
               <button
                 type="button"
                 onClick={() => {
@@ -554,7 +554,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                     .catch(() => setProcedures([]))
                     .finally(() => setProceduresLoading(false));
                 }}
-                style={{ fontSize: 11, fontWeight: 700, color: "white", background: col, padding: "4px 10px", borderRadius: 16, border: "none", cursor: "pointer", letterSpacing: ".02em" }}
+                style={{ fontSize: 14, fontWeight: 700, color: "white", background: col, padding: "4px 10px", borderRadius: 16, border: "none", cursor: "pointer", letterSpacing: ".02em" }}
               >
                 Reference Protocol
               </button>
@@ -573,10 +573,10 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               onClick={() => updateChecklist(i)}
               style={{ display: "flex", gap: 12, width: "100%", marginBottom: 10, cursor: "pointer", alignItems: "flex-start", border: "none", background: entry.completed ? `${pBg(p)}88` : "transparent", padding: 0, textAlign: "left" }}
             >
-              <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${entry.completed ? col : "#CBD5E1"}`, background: entry.completed ? pGrd(p) : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2, color: "#fff", fontSize: 12, fontWeight: 900 }}>
+              <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${entry.completed ? col : "#CBD5E1"}`, background: entry.completed ? pGrd(p) : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2, color: "#fff", fontSize: 15, fontWeight: 900 }}>
                 {entry.completed ? <IconCheck size={12} color="white" /> : ""}
               </div>
-              <div style={{ fontSize: 13, color: entry.completed ? C.textMuted : C.text, lineHeight: 1.6, textDecoration: entry.completed ? "line-through" : "none", transition: "all .15s" }}>{entry.item}</div>
+              <div style={{ fontSize: 16, color: entry.completed ? C.textMuted : C.text, lineHeight: 1.6, textDecoration: entry.completed ? "line-through" : "none", transition: "all .15s" }}>{entry.item}</div>
             </button>
           ))}
         </Card>
@@ -590,8 +590,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               </div>
             ) : (
               <>
-                {(p === 1 || p === 2) && <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", background: "#FEE2E2", padding: "3px 10px", borderRadius: 20, border: "1px solid #DC262630" }}>Required</div>}
-                {p >= 3 && <div style={{ fontSize: 11, fontWeight: 700, color: C.teal, background: `${C.teal}15`, padding: "3px 10px", borderRadius: 20, border: `1px solid ${C.teal}30` }}>Recommended</div>}
+                {(p === 1 || p === 2) && <div style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", background: "#FEE2E2", padding: "3px 10px", borderRadius: 20, border: "1px solid #DC262630" }}>Required</div>}
+                {p >= 3 && <div style={{ fontSize: 14, fontWeight: 700, color: C.teal, background: `${C.teal}15`, padding: "3px 10px", borderRadius: 20, border: `1px solid ${C.teal}30` }}>Recommended</div>}
               </>
             )}
           </div>
@@ -636,8 +636,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           }}
         >
           <SectionLabel mb={10}>CTG Scans{(patient.ctgScans || []).length > 0 ? ` · ${(patient.ctgScans || []).length}` : ""}
-             <span style={{ fontWeight: 900, fontSize: 16, verticalAlign: "middle", margin: "0 8px" }} aria-hidden>·</span>
-              <div style={{  fontWeight: 600, fontSize: 8, color: C.textMuted, display: "inline", marginTop: 3 }}>Supports images and PDF files</div>
+             <span style={{ fontWeight: 900, fontSize: 19, verticalAlign: "middle", margin: "0 8px" }} aria-hidden>·</span>
+              <div style={{  fontWeight: 600, fontSize: 11, color: C.textMuted, display: "inline", marginTop: 3 }}>Supports images and PDF files</div>
              
           </SectionLabel>
 
@@ -702,8 +702,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                             style={{ width: 64, height: 64, borderRadius: 10, overflow: "hidden", border: `1px solid ${scan.isMissing ? "#D8D36540" : C.border}`, padding: 0, flexShrink: 0, cursor: scan.isMissing ? "not-allowed" : ((scan.preview || scan.fileUrl) && !isUploading ? "pointer" : "default"), background: scan.isMissing ? "#FAFAE8" : (scan.isPdf ? "#FEE2E2" : C.gradTeal), display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
                           >
                             {scan.isMissing ? (
-                              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#5B5A0D", fontSize: 9, fontWeight: 800, letterSpacing: ".04em", textAlign: "center", padding: 4, lineHeight: 1.2 }}>
-                                <div style={{ fontSize: 18, lineHeight: 1 }}>⚠</div>
+                              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#5B5A0D", fontSize: 12, fontWeight: 800, letterSpacing: ".04em", textAlign: "center", padding: 4, lineHeight: 1.2 }}>
+                                <div style={{ fontSize: 21, lineHeight: 1 }}>⚠</div>
                                 <div>MISSING</div>
                               </div>
                             ) : scan.preview ? (
@@ -728,7 +728,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                                 }}
                               />
                             ) : scan.isPdf ? (
-                              <div style={{ fontSize: 10, fontWeight: 900, color: "#B91C1C", letterSpacing: ".05em" }}>PDF</div>
+                              <div style={{ fontSize: 13, fontWeight: 900, color: "#B91C1C", letterSpacing: ".05em" }}>PDF</div>
                             ) : (
                               <svg width="22" height="22" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none"/><polyline points="14 2 14 8 20 8" fill="none"/></svg>
                             )}
@@ -741,8 +741,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
 
                           {/* Meta */}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{scan.name}</div>
-                            <div style={{ fontSize: 11, color: isFailed || scan.isMissing ? "#5B5A0D" : C.textMuted, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{scan.name}</div>
+                            <div style={{ fontSize: 14, color: isFailed || scan.isMissing ? "#5B5A0D" : C.textMuted, marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
                               {isUploading ? "Uploading…" : isFailed ? "Upload failed" : scan.isMissing ? "File missing on server" : scan.time}
                               {!isUploading && !isFailed && !scan.isMissing && scan.uploadedBy != null && (
                                 <span style={{ color: C.textLight }}>
@@ -754,7 +754,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                               )}
                             </div>
                             {scan.comment && (
-                              <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.5, marginTop: 6, padding: "6px 10px", background: C.bg, borderRadius: 8, border: `1px solid ${C.border}`, wordBreak: "break-word", overflowWrap: "anywhere" }}>
+                              <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.5, marginTop: 6, padding: "6px 10px", background: C.bg, borderRadius: 8, border: `1px solid ${C.border}`, wordBreak: "break-word", overflowWrap: "anywhere" }}>
                                 {scan.comment}
                               </div>
                             )}
@@ -814,7 +814,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                   <button
                     type="button"
                     onClick={() => setShowAllCtg((v) => !v)}
-                    style={{ width: "100%", marginTop: 4, padding: "10px 12px", background: "transparent", border: `1px dashed ${C.border}`, borderRadius: 12, color: C.teal, fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    style={{ width: "100%", marginTop: 4, padding: "10px 12px", background: "transparent", border: `1px dashed ${C.border}`, borderRadius: 12, color: C.teal, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                   >
                     {showAllCtg ? "Show less" : `View all (${allScans.length})`}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showAllCtg ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
@@ -842,7 +842,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
 
           {/* Comment field and Add scan button styled like NoteSection composer */}
           <div style={{ marginTop: 12 }}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Scan Comment
              
             </label>
@@ -856,7 +856,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                 padding: "12px 15px",
                 border: `1.5px solid ${C.border}`,
                 borderRadius: 12,
-                fontSize: 14,
+                fontSize: 17,
                 color: C.text,
                 background: C.bg,
                 resize: "vertical",
@@ -877,7 +877,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                 borderRadius: 12,
                 padding: "10px 0",
                 fontWeight: 700,
-                fontSize: 15,
+                fontSize: 18,
                 textAlign: "center",
                 cursor: "pointer",
                 marginBottom: 0,
@@ -908,7 +908,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               </span>
               </div>
             </label>
-            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}>
+            <div style={{ fontSize: 14, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}>
              
             </div>
           </div>
@@ -1009,7 +1009,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
         <Card className="fade-up" s={{ animationDelay: ".16s" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 12 }}>
             <SectionLabel mb={0}>Patient Timeline</SectionLabel>
-            <Btn variant="teal" onClick={() => onRetriage(patient)} s={{ padding: "8px 14px", fontSize: 12 }}><IconRefresh size={12} color="white" style={{ marginRight: 4 }} /> Re-triage</Btn>
+            <Btn variant="teal" onClick={() => onRetriage(patient)} s={{ padding: "8px 14px", fontSize: 15 }}><IconRefresh size={12} color="white" style={{ marginRight: 4 }} /> Re-triage</Btn>
           </div>
           {(() => {
             const all = patient.timeline || [];
@@ -1044,8 +1044,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                         {index < visible.length - 1 && <div style={{ width: 2, flex: 1, background: `linear-gradient(${tone},${C.border})`, marginTop: 4, borderRadius: 2 }} />}
                       </div>
                       <div style={{ paddingBottom: 6 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{item.title} <span style={{ color: C.textMuted, fontWeight: 500 }}>· {fmtTime(item.time)}</span></div>
-                        <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2, lineHeight: 1.6 }}>{item.detail}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.title} <span style={{ color: C.textMuted, fontWeight: 500 }}>· {fmtTime(item.time)}</span></div>
+                        <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2, lineHeight: 1.6 }}>{item.detail}</div>
                       </div>
                     </div>
                   );
@@ -1057,7 +1057,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
                       marginTop: 12, width: "100%", padding: "10px 12px",
                       background: C.bgDeep, border: `1px dashed ${C.border}`,
                       borderRadius: 10, cursor: "pointer", color: C.teal,
-                      fontSize: 12, fontWeight: 700, letterSpacing: ".02em",
+                      fontSize: 15, fontWeight: 700, letterSpacing: ".02em",
                       transition: "background .15s, border-color .15s",
                     }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = C.teal; }}
@@ -1083,7 +1083,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           onClick={() => setCtgLightbox(null)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.92)", zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16 }}
         >
-          <div style={{ position: "absolute", top: 16, left: 16, right: 16, display: "flex", justifyContent: "space-between", alignItems: "center", color: "white", fontSize: 13, fontWeight: 600 }}>
+          <div style={{ position: "absolute", top: 16, left: 16, right: 16, display: "flex", justifyContent: "space-between", alignItems: "center", color: "white", fontSize: 16, fontWeight: 600 }}>
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%", margin: "0 auto" }}>{ctgLightbox.name}</span>
             <button onClick={(e) => { e.stopPropagation(); setCtgLightbox(null); }} style={{ background: "rgba(255,255,255,.15)", border: "none", color: "white", borderRadius: 999, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <IconClose size={16} />
@@ -1095,7 +1095,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
             onClick={(e) => e.stopPropagation()}
             style={{width: "100%", margin: "0 auto" , maxHeight: "calc(100vh - 100px)", objectFit: "contain", borderRadius: 8, boxShadow: "0 10px 40px rgba(0,0,0,.5)" }}
           />
-          <div style={{ position: "absolute", bottom: 16, color: "rgba(255,255,255,.6)", fontSize: 11 }}>Tap outside to close</div>
+          <div style={{ position: "absolute", bottom: 16, color: "rgba(255,255,255,.6)", fontSize: 14 }}>Tap outside to close</div>
         </div>
       )}
 
@@ -1111,8 +1111,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>Reference Protocol</div>
-                <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>P{patient.latestAssessment?.finalPriorityId || p} · GA {ga} weeks</div>
+                <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>Reference Protocol</div>
+                <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2 }}>P{patient.latestAssessment?.finalPriorityId || p} · GA {ga} weeks</div>
               </div>
               <button
                 onClick={() => setShowProcedures(false)}
@@ -1123,10 +1123,10 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
             </div>
 
             {proceduresLoading && (
-              <div style={{ textAlign: "center", padding: "24px 0", color: C.textMuted, fontSize: 13 }}>Loading protocol…</div>
+              <div style={{ textAlign: "center", padding: "24px 0", color: C.textMuted, fontSize: 16 }}>Loading protocol…</div>
             )}
             {!proceduresLoading && procedures.length === 0 && (
-              <div style={{ textAlign: "center", padding: "24px 0", color: C.textMuted, fontSize: 13 }}>No protocol steps available for this priority.</div>
+              <div style={{ textAlign: "center", padding: "24px 0", color: C.textMuted, fontSize: 16 }}>No protocol steps available for this priority.</div>
             )}
             {!proceduresLoading && procedures.map((proc, i) => {
               const titleText = proc.title || proc.name || proc.step || proc.action || proc.label || "";
@@ -1134,11 +1134,11 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               return (
               <div key={proc.id} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
                 <div style={{ width: 26, height: 26, borderRadius: 8, background: pGrd(p), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 2px 6px ${col}35` }}>
-                  <span style={{ fontSize: 12, fontWeight: 900, color: "white" }}>{proc.stepOrder ?? i + 1}</span>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "white" }}>{proc.stepOrder ?? i + 1}</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.text, lineHeight: 1.5 }}>{titleText || `Step ${proc.stepOrder ?? i + 1}`}</div>
-                  {detailText && <div style={{ fontSize: 12, color: C.textMuted, marginTop: 3, lineHeight: 1.6 }}>{detailText}</div>}
+                  <div style={{ fontSize: 16, fontWeight: 700, color: C.text, lineHeight: 1.5 }}>{titleText || `Step ${proc.stepOrder ?? i + 1}`}</div>
+                  {detailText && <div style={{ fontSize: 15, color: C.textMuted, marginTop: 3, lineHeight: 1.6 }}>{detailText}</div>}
                 </div>
               </div>
               );

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { AuthUser } from "../api";
 import { authApi } from "../api/auth";
 import {
-  IconHospital,
-  IconStethoscope,
-  IconUser
+    IconHospital,
+    IconStethoscope,
+    IconUser
 } from "../components/icons";
 import { Btn, Card, Hdr } from "../components/ui";
 import { C } from "../constants/theme";
@@ -106,10 +106,10 @@ function ReadField({ icon, label, value, mono, theme }: any) {
         {icon}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.textMuted, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: C.textMuted, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 2 }}>{label}</div>
         <div
           style={{
-            fontSize: 14,
+            fontSize: 17,
             fontWeight: 700,
             color: C.text,
             fontFamily: mono ? "ui-monospace, SFMono-Regular, Menlo, monospace" : undefined,
@@ -125,7 +125,7 @@ function ReadField({ icon, label, value, mono, theme }: any) {
 
 function EditField({ icon, label, value, onChange, type = "text", placeholder, inputRef, error }: any) {
   const labelStyle: React.CSSProperties = {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: 700,
     color: C.textMuted,
     letterSpacing: 0.4,
@@ -140,14 +140,14 @@ function EditField({ icon, label, value, onChange, type = "text", placeholder, i
     borderRadius: 12,
     border: `1.5px solid ${error ? C.p1 : C.border}`,
     background: "#fff",
-    fontSize: 14,
+    fontSize: 17,
     outline: "none",
     color: C.text,
   };
 
   const errorStyle: React.CSSProperties = {
     marginTop: 6,
-    fontSize: 12,
+    fontSize: 15,
     color: C.p1,
     lineHeight: 1.3,
   };
@@ -321,12 +321,12 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
             boxShadow: `0 14px 36px ${theme.accent}40`,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 76, height: 76, borderRadius: "50%", background: "white", display: "flex", alignItems: "center", justifyContent: "center", color: theme.accent, fontSize: 26, fontWeight: 900 }}>
+            <div style={{ width: 76, height: 76, borderRadius: "50%", background: "white", display: "flex", alignItems: "center", justifyContent: "center", color: theme.accent, fontSize: 29, fontWeight: 900 }}>
               {initials}
             </div>
             <div style={{ flex: 1, color: "white" }}>
-              <div style={{ fontSize: 19, fontWeight: 900 }}>{credName}</div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "3px 10px", background: "rgba(255,255,255,.22)", borderRadius: 999, fontSize: 10, fontWeight: 800 }}>
+              <div style={{ fontSize: 22, fontWeight: 900 }}>{credName}</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "3px 10px", background: "rgba(255,255,255,.22)", borderRadius: 999, fontSize: 13, fontWeight: 800 }}>
                 <IconStethoscope size={11} color="white" /> {profile.role}
               </div>
             </div>
@@ -345,8 +345,8 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
                 { label: "Notes", value: report.notesAdded, color: C.purple, icon: "📝" },
              ].map((s, i) => (
                 <div key={i} style={{ background: "#fff", borderRadius: 14, border: `1px solid ${C.border}`, padding: 14 }}>
-                    <div style={{ fontSize: 26, fontWeight: 900, color: s.color }}>{s.value}</div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: C.textMuted }}>{s.label}</div>
+                    <div style={{ fontSize: 29, fontWeight: 900, color: s.color }}>{s.value}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: C.textMuted }}>{s.label}</div>
                 </div>
              ))}
           </div>
@@ -357,9 +357,9 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
       <div style={{ padding: "12px 14px 16px" }}>
         <Card s={{ padding: 16, borderRadius: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 800 }}>Personal Information</div>
+            <div style={{ fontSize: 17, fontWeight: 800 }}>Personal Information</div>
             {!editing && (
-              <button onClick={() => setEditing(true)} style={{ color: theme.accent, background: 'none', border: 'none', fontWeight: 800, fontSize: 12 }}>
+              <button onClick={() => setEditing(true)} style={{ color: theme.accent, background: 'none', border: 'none', fontWeight: 800, fontSize: 15 }}>
                 <IconPencil size={12} /> Edit
               </button>
             )}

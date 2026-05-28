@@ -29,9 +29,9 @@ export function PatientsScreen({ onNav, patients, loading, onOpenPatient, onStar
       <Hdr title="Triage Queue" onBack={() => onNav("welcome")} />
       <div style={{ padding: "14px 14px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 600 }}>{showSkeletons ? "Loading queue…" : `${patients.length} patients triaged today`}</div>
+          <div style={{ fontSize: 15, color: C.textMuted, fontWeight: 600 }}>{showSkeletons ? "Loading queue…" : `${patients.length} patients triaged today`}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Btn variant="ghost" onClick={onOpenSearch} s={{ padding: "6px 10px", fontSize: 12, borderRadius: 999 }}><IconSearch size={12} style={{ marginRight: 4 }} /> Search Files</Btn>
+            <Btn variant="ghost" onClick={onOpenSearch} s={{ padding: "6px 10px", fontSize: 15, borderRadius: 999 }}><IconSearch size={12} style={{ marginRight: 4 }} /> Search Files</Btn>
             <StatusChip label="Sort by priority" tone={C.green} />
           </div>
         </div>
@@ -43,16 +43,16 @@ export function PatientsScreen({ onNav, patients, loading, onOpenPatient, onStar
               return (
                 <div key={p.id} className="card-hover fade-up" onClick={() => onOpenPatient(p)} style={{ animationDelay: `${i * 0.04}s`, background: C.bg, borderRadius: 16, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 14, boxShadow: "0 3px 12px rgba(0,0,0,.07)", border: `1px solid ${C.border}`, borderLeft: `4px solid ${col}`, cursor: "pointer" }}>
                   <div style={{ width: 44, height: 44, borderRadius: 14, background: col, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 10px ${col}40` }}>
-                    <span style={{ fontWeight: 900, color: "white", fontSize: 14 }}>P{finalPid}</span>
+                    <span style={{ fontWeight: 900, color: "white", fontSize: 17 }}>P{finalPid}</span>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: C.text, letterSpacing: "-.01em" }}>{fullName(p)}</div>
+                      <div style={{ fontWeight: 700, fontSize: 17, color: C.text, letterSpacing: "-.01em" }}>{fullName(p)}</div>
                       <StatusChip label={p.status} tone={col} />
                     </div>
-                    <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{resolveConditionName(p) || p.cond || "—"}</div>
-                    <div style={{ fontSize: 11, color: C.textLight, marginTop: 1 }}>Age {p.age} · GA {p.ga}w · {p.location} · {p.t}</div>
-                    <div style={{ fontSize: 11, color: col, fontWeight: 700, marginTop: 4 }}>Reassess: {p.reassessDue}</div>
+                    <div style={{ fontSize: 15, color: C.textMuted, marginTop: 2 }}>{resolveConditionName(p) || p.cond || "—"}</div>
+                    <div style={{ fontSize: 14, color: C.textLight, marginTop: 1 }}>Age {p.age} · GA {p.ga}w · {p.location} · {p.t}</div>
+                    <div style={{ fontSize: 14, color: col, fontWeight: 700, marginTop: 4 }}>Reassess: {p.reassessDue}</div>
                   </div>
                   <IconChevronRight size={16} color={C.textLight} />
                 </div>

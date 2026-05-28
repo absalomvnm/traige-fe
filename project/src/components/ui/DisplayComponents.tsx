@@ -1,4 +1,4 @@
-import { C, pC, pBg, pLbl } from "../../constants/theme";
+import { C, pBg, pC, pLbl } from "../../constants/theme";
 import { IconArrowLeft } from "../icons";
 
 export function Btn({
@@ -24,7 +24,7 @@ export function Btn({
     border: "none",
     cursor: disabled ? "not-allowed" : "pointer",
     fontWeight: 700,
-    fontSize: 14,
+    fontSize: 17,
     width: full ? "100%" : undefined,
     opacity: disabled ? 0.5 : 1,
     letterSpacing: "0.01em",
@@ -102,7 +102,7 @@ export function Tag({ priority }: any) {
       />
       <span
         style={{
-          fontSize: 11,
+          fontSize: 14,
           fontWeight: 800,
           color: col,
           letterSpacing: "0.06em",
@@ -125,7 +125,7 @@ export function StatusChip({ label, tone = C.green, bg }: any) {
         borderRadius: 999,
         background: bg || `${tone}12`,
         border: `1px solid ${tone}30`,
-        fontSize: 11,
+        fontSize: 14,
         fontWeight: 700,
         color: tone,
         whiteSpace: "nowrap",
@@ -174,7 +174,7 @@ export function Hdr({ title, onBack, gradient = C.gradGreen, right }: any) {
             alignItems: "center",
             justifyContent: "center",
             color: "white",
-            fontSize: 18,
+            fontSize: 21,
             flexShrink: 0,
           }}
         >
@@ -182,7 +182,7 @@ export function Hdr({ title, onBack, gradient = C.gradGreen, right }: any) {
         </button>
       )}
       <div
-        style={{ flex: 1, fontSize: 17, fontWeight: 800, color: "white", letterSpacing: "-.01em" }}
+        style={{ flex: 1, fontSize: 20, fontWeight: 800, color: "white", letterSpacing: "-.01em" }}
       >
         {title}
       </div>
@@ -213,7 +213,7 @@ export function SectionLabel({ children, color = C.textMuted, mb = 12 }: any) {
   return (
     <div
       style={{
-        fontSize: 10,
+        fontSize: 13,
         fontWeight: 800,
         color,
         textTransform: "uppercase",

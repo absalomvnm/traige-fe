@@ -62,7 +62,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
         <span
           style={{
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: 800,
             color: C.purple,
             letterSpacing: ".12em",
@@ -76,7 +76,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
             style={{
               padding: "2px 8px",
               borderRadius: 10,
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: 800,
               background: headlineColor,
               color: "#fff",
@@ -85,11 +85,11 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
             {aiTriage.priority}
           </span>
         )}
-        <span style={{ fontSize: 12, color: C.textMuted }}>
+        <span style={{ fontSize: 15, color: C.textMuted }}>
           confidence {overallConfPct}
         </span>
         {triageSource && triageSource.toUpperCase().includes("AI") && (
-          <span style={{ fontSize: 10, color: C.textLight, marginLeft: "auto" }}>
+          <span style={{ fontSize: 13, color: C.textLight, marginLeft: "auto" }}>
             drove decision
           </span>
         )}
@@ -103,7 +103,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
             const w = `${Math.max(2, Math.round((v as number) * 100))}%`;
             return (
               <div key={code} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: C.textMid, width: 24 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: C.textMid, width: 24 }}>
                   {code}
                 </span>
                 <div
@@ -117,7 +117,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
                 >
                   <div style={{ width: w, background: col, height: "100%" }} />
                 </div>
-                <span style={{ fontSize: 11, color: C.textMuted, width: 36, textAlign: "right" }}>
+                <span style={{ fontSize: 14, color: C.textMuted, width: 36, textAlign: "right" }}>
                   {fmtPct(v as number)}
                 </span>
               </div>
@@ -130,7 +130,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
         <div>
           <div
             style={{
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: 700,
               color: C.textMuted,
               letterSpacing: ".1em",
@@ -160,7 +160,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
                   />
                   <span
                     style={{
-                      fontSize: 12,
+                      fontSize: 15,
                       color: C.textMid,
                       flex: 1,
                       whiteSpace: "nowrap",
@@ -181,7 +181,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
                   >
                     <div style={{ width: w, background: dotColor, height: "100%" }} />
                   </div>
-                  <span style={{ fontSize: 11, color: C.textMuted, width: 36, textAlign: "right" }}>
+                  <span style={{ fontSize: 14, color: C.textMuted, width: 36, textAlign: "right" }}>
                     {fmtPct(c.probability)}
                   </span>
                 </div>
@@ -196,7 +196,7 @@ export function AiTriagePanel({ aiTriage, aiInvokedAt, triageSource }: AiTriageP
           style={{
             display: "flex",
             justifyContent: "space-between",
-            fontSize: 10,
+            fontSize: 13,
             color: C.textLight,
             marginTop: 10,
             paddingTop: 8,

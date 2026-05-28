@@ -88,13 +88,13 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
       <div style={{ background: pGrd(legacyPriority), padding: "24px 20px 60px", position: "relative", overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,.2)" }}>
         <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
-          <button onClick={() => onNav("welcome")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Triage Result</span>
+          <button onClick={() => onNav("welcome")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 21 }}><IconArrowLeft size={18} color="white" /></button>
+          <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Triage Result</span>
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Priority Assessment</div>
-        <div style={{ fontSize: 52, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>P{finalPriorityId}</div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: "rgba(255,255,255,.92)", marginTop: 2 }}>{catLabel || pLbl(legacyPriority)}</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginTop: 6, fontWeight: 500 }}>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Priority Assessment</div>
+        <div style={{ fontSize: 55, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>P{finalPriorityId}</div>
+        <div style={{ fontSize: 25, fontWeight: 800, color: "rgba(255,255,255,.92)", marginTop: 2 }}>{catLabel || pLbl(legacyPriority)}</div>
+        <div style={{ fontSize: 16, color: "rgba(255,255,255,.75)", marginTop: 6, fontWeight: 500 }}>
           Target: {catTarget || pTm(legacyPriority)}
         </div>
       </div>
@@ -107,16 +107,16 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
 
         {(finalPriorityId === 1 || finalPriorityId === 2) && (
           <div className="fade-up" style={{ background: finalPriorityId === 1 ? C.p1bg : C.p2bg, border: `1.5px solid ${finalPriorityId === 1 ? C.p1b : C.p2b}`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, boxShadow: `0 4px 16px ${col}20` }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: col, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Immediate Next Step</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Escalate to labour suite workflow now.</div>
-            <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4, lineHeight: 1.6 }}>Emergencies and urgent cases must move quickly to labour suites for advanced midwife management.</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: col, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Immediate Next Step</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>Escalate to labour suite workflow now.</div>
+            <div style={{ fontSize: 15, color: C.textMuted, marginTop: 4, lineHeight: 1.6 }}>Emergencies and urgent cases must move quickly to labour suites for advanced midwife management.</div>
           </div>
         )}
 
         <div className="fade-up" style={{ background: C.bg, borderRadius: 18, padding: "18px 16px", marginBottom: 14, boxShadow: "0 4px 16px rgba(0,0,0,.08)", border: `1px solid ${C.border}` }}>
           <SectionLabel mb={8}>Patient</SectionLabel>
-          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: "-.01em" }}>{name || "—"} {surname || ""}</div>
-          <div style={{ fontSize: 13, color: C.textMuted, marginTop: 4 }}>Age {age || "—"} yrs · GA {gestAge || "—"} weeks</div>
+          <div style={{ fontSize: 23, fontWeight: 800, color: C.text, letterSpacing: "-.01em" }}>{name || "—"} {surname || ""}</div>
+          <div style={{ fontSize: 16, color: C.textMuted, marginTop: 4 }}>Age {age || "—"} yrs · GA {gestAge || "—"} weeks</div>
           <div style={{ marginTop: 10 }}><Tag priority={legacyPriority} /></div>
         </div>
 
@@ -125,9 +125,9 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
             {([["BP", bpS && bpD ? `${bpS}/${bpD}` : "—", "mmHg"], ["HR", hr || "—", "bpm"], ["RR", rr || "—", "/min"], ["SpO₂", spo || "—", "%"], ["FHR", fhr || "—", "bpm"], ["Cervix", cx && cx !== "0" ? cx : "—", "cm"]] as const).map(([k, v, u]) => (
               <div key={k} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{k}</div>
-                <div style={{ fontSize: 17, fontWeight: 900, color: C.text, marginTop: 2 }}>{v}</div>
-                <div style={{ fontSize: 10, color: C.textLight }}>{u}</div>
+                <div style={{ fontSize: 13, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{k}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: C.text, marginTop: 2 }}>{v}</div>
+                <div style={{ fontSize: 13, color: C.textLight }}>{u}</div>
               </div>
             ))}
           </div>
@@ -147,12 +147,12 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
                   transition: "width .5s",
                 }} />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 800, color: col, minWidth: 38 }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: col, minWidth: 38 }}>
                 {Math.round(triageSummary.aiPriorityConfidence * 100)}%
               </span>
             </div>
             {triageSummary.aiInvokedAt && (
-              <div style={{ fontSize: 11, color: C.textMuted, marginTop: 6 }}>
+              <div style={{ fontSize: 14, color: C.textMuted, marginTop: 6 }}>
                 AI invoked at {new Date(triageSummary.aiInvokedAt).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
               </div>
             )}
@@ -189,8 +189,8 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
                       <span style={{ fontSize: 10, fontWeight: 900, color: "white" }}>{i + 1}</span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{rule.action}</div>
-                      {condName && <div style={{ fontSize: 11, color: col, fontWeight: 600, marginTop: 2 }}>{condName}</div>}
+                      <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{rule.action}</div>
+                      {condName && <div style={{ fontSize: 14, color: col, fontWeight: 600, marginTop: 2 }}>{condName}</div>}
                     </div>
                   </div>
                 );
@@ -213,9 +213,9 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
             checklist.map((step, i) => (
               <div key={step.id ?? i} style={{ display: "flex", gap: 12, marginBottom: 12 }}>
                 <div style={{ width: 26, height: 26, borderRadius: 8, background: pGrd(legacyPriority), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 2px 6px ${col}35` }}>
-                  <span style={{ fontSize: 12, fontWeight: 900, color: "white" }}>{i + 1}</span>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "white" }}>{i + 1}</span>
                 </div>
-                <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.65, paddingTop: 4 }}>{step.item}</div>
+                <div style={{ fontSize: 16, color: C.textMid, lineHeight: 1.65, paddingTop: 4 }}>{step.item}</div>
               </div>
             ))
           )}

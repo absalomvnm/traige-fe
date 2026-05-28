@@ -45,10 +45,10 @@ export function ObstetricConditionChips({ items }: ObstetricConditionChipsProps)
               padding: "5px 10px",
             }}
           >
-            <span style={{ fontSize: 12, fontWeight: 700, color: style.text }}>{name}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: style.text }}>{name}</span>
             <span
               style={{
-                fontSize: 9,
+                fontSize: 12,
                 fontWeight: 800,
                 color: style.text,
                 background: style.border,
@@ -60,7 +60,7 @@ export function ObstetricConditionChips({ items }: ObstetricConditionChipsProps)
               {src}
             </span>
             {probPct != null && (
-              <span style={{ fontSize: 10, color: style.text, opacity: 0.8 }}>{probPct}%</span>
+              <span style={{ fontSize: 13, color: style.text, opacity: 0.8 }}>{probPct}%</span>
             )}
           </div>
         );

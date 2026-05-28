@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { C } from "../constants/theme";
 import { CONDITIONS } from "../constants/conditions";
+import { C } from "../constants/theme";
 
 interface MultiConditionSelectProps {
   selectedKeys?: string[];
@@ -110,7 +110,7 @@ export function MultiConditionSelect({
   return (
     <div style={{ marginBottom: 16, position: "relative" }}>
       <label style={{
-        display: "block", fontSize: 11, fontWeight: 700, color: C.textMuted,
+        display: "block", fontSize: 14, fontWeight: 700, color: C.textMuted,
         marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em",
       }}>
         SIGNS & SYMPTOMS
@@ -121,7 +121,7 @@ export function MultiConditionSelect({
         onClick={() => setIsOpen(!isOpen)}
         style={{
           width: "100%", padding: "12px 15px", border: `1.5px solid ${isOpen ? C.green : C.border}`,
-          borderRadius: 12, fontSize: 14,
+          borderRadius: 12, fontSize: 17,
           color: selectedKeys.length ? C.text : C.textLight,
           background: C.bg, cursor: "pointer", display: "flex",
           justifyContent: "space-between", alignItems: "center",
@@ -134,7 +134,7 @@ export function MultiConditionSelect({
             ? `${selectedKeys.length} sign(s) and symptom(s) selected`
             : "Select observed signs and symptoms..."}
         </span>
-        <span style={{ fontSize: 12 }}>{isOpen ? "▲" : "▼"}</span>
+        <span style={{ fontSize: 15 }}>{isOpen ? "▲" : "▼"}</span>
       </div>
 
       {isOpen && (
@@ -160,7 +160,7 @@ export function MultiConditionSelect({
               style={{
                 width: "100%", padding: "8px 12px",
                 border: `1.5px solid ${C.border}`, borderRadius: 8,
-                fontSize: 13, color: C.text, background: C.bgSoft,
+                fontSize: 16, color: C.text, background: C.bgSoft,
                 outline: "none", fontFamily: "'Outfit', sans-serif",
               }}
             />
@@ -195,18 +195,18 @@ export function MultiConditionSelect({
                       border: `1.5px solid ${checked ? C.green : C.borderMid || C.border}`,
                       background: checked ? C.green : "#fff",
                       display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      color: "#fff", fontSize: 13, fontWeight: 900, lineHeight: 1,
+                      color: "#fff", fontSize: 16, fontWeight: 900, lineHeight: 1,
                       boxShadow: checked ? `0 0 0 3px ${C.green}20` : "0 1px 2px rgba(0,0,0,.04)",
                       transition: "all .15s",
                     }}
                   >
                     {checked ? "✓" : ""}
                   </span>
-                  <span style={{ fontSize: 14, color: C.text, fontWeight: checked ? 600 : 500 }}>{cond.lb}</span>
+                  <span style={{ fontSize: 17, color: C.text, fontWeight: checked ? 600 : 500 }}>{cond.lb}</span>
                   {/* Badge for custom entries */}
                   {isCustomKey(cond.v) && (
                     <span style={{
-                      marginLeft: "auto", fontSize: 10, fontWeight: 700,
+                      marginLeft: "auto", fontSize: 13, fontWeight: 700,
                       color: "#EA580C", background: "#FFF7ED",
                       padding: "2px 7px", borderRadius: 99,
                     }}>
@@ -219,7 +219,7 @@ export function MultiConditionSelect({
 
             {/* No results */}
             {filtered.length === 0 && !isNewEntry && (
-              <div style={{ padding: "14px", fontSize: 13, color: C.textMuted, textAlign: "center" }}>
+              <div style={{ padding: "14px", fontSize: 16, color: C.textMuted, textAlign: "center" }}>
                 No matching conditions found
               </div>
             )}
@@ -240,15 +240,15 @@ export function MultiConditionSelect({
                 <div style={{
                   width: 18, height: 18, borderRadius: 4, flexShrink: 0,
                   background: C.green, display: "flex", alignItems: "center",
-                  justifyContent: "center", color: "white", fontSize: 14, fontWeight: 800,
+                  justifyContent: "center", color: "white", fontSize: 17, fontWeight: 800,
                 }}>
                   +
                 </div>
-                <span style={{ fontSize: 14, color: C.text }}>
+                <span style={{ fontSize: 17, color: C.text }}>
                   Add "{searchTrimmed}"
                 </span>
                 <span style={{
-                  marginLeft: "auto", fontSize: 10, fontWeight: 700,
+                  marginLeft: "auto", fontSize: 13, fontWeight: 700,
                   color: C.purple || "#7C3AED", background: C.purpleL || "#F5F3FF",
                   padding: "2px 7px", borderRadius: 99,
                 }}>
@@ -261,7 +261,7 @@ export function MultiConditionSelect({
           {/* Footer hint */}
           <div style={{
             padding: "8px 14px", borderTop: `1px solid ${C.border}`,
-            fontSize: 11, color: C.textMuted,
+            fontSize: 14, color: C.textMuted,
           }}>
             {isNewEntry
               ? `Press Enter or tap "Add" to add as custom symptom`
@@ -276,7 +276,7 @@ export function MultiConditionSelect({
           {selectedKeys.map((key) => (
             <div key={key} style={{
               background: isCustomKey(key) ? C.purpleL || "#F5F3FF" : C.bgDeep,
-              borderRadius: 32, padding: "5px 12px", fontSize: 12, fontWeight: 600,
+              borderRadius: 32, padding: "5px 12px", fontSize: 15, fontWeight: 600,
               color: isCustomKey(key) ? C.purple || "#7C3AED" : C.green,
               display: "inline-flex", alignItems: "center", gap: 6,
               border: `1px solid ${isCustomKey(key) ? (C.purpleM || "#7C3AED") + "40" : C.borderMid}`,
@@ -286,7 +286,7 @@ export function MultiConditionSelect({
                 onClick={(e) => removeCondition(key, e)}
                 style={{
                   background: "none", border: "none", cursor: "pointer",
-                  fontSize: 14, fontWeight: 800, color: C.textMuted,
+                  fontSize: 17, fontWeight: 800, color: C.textMuted,
                   padding: "0 2px", lineHeight: 1,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = C.p1)}
@@ -299,7 +299,7 @@ export function MultiConditionSelect({
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}>
+      <div style={{ fontSize: 14, color: C.textMuted, marginTop: 4, paddingLeft: 2 }}>
         Search or type to add a custom symptom. Priority based on most urgent signs and symptoms selected.
       </div>
     </div>

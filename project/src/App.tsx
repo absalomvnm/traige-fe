@@ -688,16 +688,16 @@ export default function App() {
                 width: 46, height: 46, borderRadius: "50%",
                 background: C.gradGreen,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, fontWeight: 900, color: "#fff",
+                fontSize: 21, fontWeight: 900, color: "#fff",
                 flexShrink: 0,
               }}>
                 {currentUser?.firstName?.[0] ?? currentUser?.email?.[0]?.toUpperCase() ?? "U"}
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: C.text }}>
                   {[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(" ") || "User"}
                 </div>
-                <div style={{ fontSize: 12, color: C.textMuted, marginTop: 1 }}>
+                <div style={{ fontSize: 15, color: C.textMuted, marginTop: 1 }}>
                   {currentUser?.email ?? ""}
                 </div>
               </div>
@@ -726,8 +726,8 @@ export default function App() {
                     flexShrink: 0,
                   }}>{item.icon}</div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{item.label}</div>
-                    <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{item.desc}</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>{item.label}</div>
+                    <div style={{ fontSize: 14, color: C.textMuted, marginTop: 1 }}>{item.desc}</div>
                   </div>
                   <div style={{ marginLeft: "auto", color: C.textLight }}><IconChevronRight size={16} color={C.textLight} /></div>
                 </button>
@@ -756,8 +756,8 @@ export default function App() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "#dc2626" }}>Logout</div>
-                  <div style={{ fontSize: 11, color: "#f87171", marginTop: 1 }}>End your session</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#dc2626" }}>Logout</div>
+                  <div style={{ fontSize: 14, color: "#f87171", marginTop: 1 }}>End your session</div>
                 </div>
               </button>
             </div>

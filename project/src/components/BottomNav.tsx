@@ -144,7 +144,7 @@ export function BottomNav({
             {/* LABEL */}
             <div
               style={{
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: isActive ? 800 : 600,
                 color: isActive
                   ? C.green
@@ -171,7 +171,7 @@ export function BottomNav({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 9,
+                    fontSize: 12,
                     fontWeight: 900,
                     color: "white",
                     padding: "0 4px",

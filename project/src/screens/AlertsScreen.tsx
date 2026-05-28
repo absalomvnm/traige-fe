@@ -1,11 +1,11 @@
-import { C, pC, pBg, pGrd, pLbl } from "../constants/theme";
-import { priorityColor, obstetricConditionByCode } from "../services/catalogService";
 import { useEffect, useRef, useState } from "react";
-import { Btn, Hdr } from "../components/ui";
 import { AlertCardSkeleton } from "../components/Skeletons";
-import { IconSiren, IconCheck, IconCheckCircle, IconChevronRight } from "../components/icons";
-import { patientService } from "../services/Patientservice";
+import { IconCheck, IconCheckCircle, IconChevronRight, IconSiren } from "../components/icons";
+import { Btn, Hdr } from "../components/ui";
+import { C, pBg, pC, pGrd, pLbl } from "../constants/theme";
 import type { AssessmentAlert } from "../services/Patientservice";
+import { patientService } from "../services/Patientservice";
+import { obstetricConditionByCode, priorityColor } from "../services/catalogService";
 
 interface AlertsScreenProps {
   onNav: (screen: string) => void;
@@ -35,8 +35,8 @@ function humanizeType(type?: string) {
 function SectionHeader({ label, count }: { label: string; count: number }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, marginTop: 4 }}>
-      <div style={{ fontSize: 11, fontWeight: 800, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: C.textMuted, background: C.bgDeep, borderRadius: 20, padding: "2px 8px" }}>{count}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.textMuted, background: C.bgDeep, borderRadius: 20, padding: "2px 8px" }}>{count}</div>
       <div style={{ flex: 1, height: 1, background: C.border }} />
     </div>
   );
@@ -147,28 +147,28 @@ function AlertCard({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {!acked && p === 1 && <div className="pulse"><IconSiren size={13} color="white" /></div>}
-          <span style={{ fontSize: 11, fontWeight: 800, color: acked ? C.textMuted : "white", letterSpacing: 0.5 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: acked ? C.textMuted : "white", letterSpacing: 0.5 }}>
             P{p} · {label}
           </span>
           {alert.type && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: acked ? C.textMuted : "rgba(255,255,255,.8)", background: acked ? C.bgDeep : "rgba(255,255,255,.18)", borderRadius: 6, padding: "2px 8px" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: acked ? C.textMuted : "rgba(255,255,255,.8)", background: acked ? C.bgDeep : "rgba(255,255,255,.18)", borderRadius: 6, padding: "2px 8px" }}>
               {humanizeType(alert.type)}
             </span>
           )}
           {count > 1 && (
-            <span style={{ fontSize: 10, fontWeight: 800, color: acked ? C.textMuted : "white", background: acked ? C.bgDeep : "rgba(0,0,0,.25)", borderRadius: 20, padding: "2px 8px", letterSpacing: 0 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: acked ? C.textMuted : "white", background: acked ? C.bgDeep : "rgba(0,0,0,.25)", borderRadius: 20, padding: "2px 8px", letterSpacing: 0 }}>
               ×{count}
             </span>
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {resolvedFlag && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.green, background: "#ecfdf5", padding: "3px 9px", borderRadius: 20, border: "1px solid #6ee7b7" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.green, background: "#ecfdf5", padding: "3px 9px", borderRadius: 20, border: "1px solid #6ee7b7" }}>
               Resolved
             </span>
           )}
           {acked && !resolvedFlag && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: C.p4, background: C.p4bg, padding: "3px 9px", borderRadius: 20, border: `1px solid ${C.p4b}`, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.p4, background: C.p4bg, padding: "3px 9px", borderRadius: 20, border: `1px solid ${C.p4b}`, display: "inline-flex", alignItems: "center", gap: 4 }}>
               <IconCheck size={10} /> Acknowledged
             </span>
           )}
@@ -179,28 +179,28 @@ function AlertCard({
       <div style={{ padding: "12px 14px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: C.text, marginBottom: 2 }}>
+            <div style={{ fontWeight: 800, fontSize: 18, color: C.text, marginBottom: 2 }}>
               {alert.patientName || `Patient #${alert.patientId ?? alert.id}`}
             </div>
             {condName && (
-              <div style={{ fontSize: 13, fontWeight: 700, color: acked ? C.textMid : color }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: acked ? C.textMid : color }}>
                 {condName}
               </div>
             )}
           </div>
-          <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0, textAlign: "right", lineHeight: 1.4 }}>
+          <div style={{ fontSize: 14, color: C.textMuted, flexShrink: 0, textAlign: "right", lineHeight: 1.4 }}>
             {fmtTime(alert.triggeredAt ?? alert.createdAt)}
           </div>
         </div>
 
         {alert.message && (
-          <div style={{ fontSize: 12, color: C.textMid, lineHeight: 1.6, background: acked ? C.bgSoft : bg, border: `1px solid ${acked ? C.border : color + "33"}`, padding: "8px 10px", borderRadius: 8, marginBottom: 10 }}>
+          <div style={{ fontSize: 15, color: C.textMid, lineHeight: 1.6, background: acked ? C.bgSoft : bg, border: `1px solid ${acked ? C.border : color + "33"}`, padding: "8px 10px", borderRadius: 8, marginBottom: 10 }}>
             {alert.message}
           </div>
         )}
 
         {acked && (
-          <div style={{ fontSize: 11, color: C.textMuted, display: "flex", alignItems: "center", gap: 6, marginBottom: 10, padding: "6px 10px", background: C.p4bg, borderRadius: 8, border: `1px solid ${C.p4b}` }}>
+          <div style={{ fontSize: 14, color: C.textMuted, display: "flex", alignItems: "center", gap: 6, marginBottom: 10, padding: "6px 10px", background: C.p4bg, borderRadius: 8, border: `1px solid ${C.p4b}` }}>
             <IconCheck size={11} color={C.green} />
             <span>
               Acknowledged by <strong style={{ color: C.green }}>{resolveAckName(alert, currentUser)}</strong>
@@ -335,15 +335,15 @@ export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, 
         <div style={{ background: allClear ? "linear-gradient(135deg,#059669,#047857)" : C.gradAlert, borderRadius: 16, padding: "18px 18px 16px", marginBottom: 18, boxShadow: allClear ? "0 4px 14px rgba(5,150,105,.3)" : "0 6px 24px rgba(220,38,38,.35)" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
             <div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: "white" }}>{active.length} Active Alert{active.length !== 1 ? "s" : ""}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,.8)", marginTop: 2 }}>{allClear ? "All alerts acknowledged — great work!" : "These cases require IMMEDIATE attention"}</div>
+              <div style={{ fontSize: 27, fontWeight: 900, color: "white" }}>{active.length} Active Alert{active.length !== 1 ? "s" : ""}</div>
+              <div style={{ fontSize: 15, color: "rgba(255,255,255,.8)", marginTop: 2 }}>{allClear ? "All alerts acknowledged — great work!" : "These cases require IMMEDIATE attention"}</div>
             </div>
-            {allClear ? <IconCheckCircle size={36} color="rgba(255,255,255,.8)" /> : <div className="pulse"><IconSiren size={28} color="rgba(255,255,255,.8)" /></div>}
+            {allClear ? <IconCheckCircle size={39} color="rgba(255,255,255,.8)" /> : <div className="pulse"><IconSiren size={31} color="rgba(255,255,255,.8)" /></div>}
           </div>
           {(p1active > 0 || p2active > 0) && (
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              {p1active > 0 && <div style={{ background: "rgba(255,255,255,.2)", backdropFilter: "blur(4px)", borderRadius: 8, padding: "5px 12px", fontSize: 11, color: "white", fontWeight: 700 }}>{p1active} P1 Immediate</div>}
-              {p2active > 0 && <div style={{ background: "rgba(255,255,255,.2)", backdropFilter: "blur(4px)", borderRadius: 8, padding: "5px 12px", fontSize: 11, color: "white", fontWeight: 700 }}>{p2active} P2 Critical</div>}
+              {p1active > 0 && <div style={{ background: "rgba(255,255,255,.2)", backdropFilter: "blur(4px)", borderRadius: 8, padding: "5px 12px", fontSize: 14, color: "white", fontWeight: 700 }}>{p1active} P1 Immediate</div>}
+              {p2active > 0 && <div style={{ background: "rgba(255,255,255,.2)", backdropFilter: "blur(4px)", borderRadius: 8, padding: "5px 12px", fontSize: 14, color: "white", fontWeight: 700 }}>{p2active} P2 Critical</div>}
             </div>
           )}
         </div>
@@ -392,7 +392,7 @@ export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, 
           </div>
         )}
 
-        <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: C.textMuted }}>
+        <div style={{ textAlign: "center", marginTop: 20, fontSize: 15, color: C.textMuted }}>
           Refreshes every 60s ·{" "}
           <span style={{ cursor: "pointer", textDecoration: "underline", color: C.green }} onClick={loadAlerts}>Refresh now</span>
         </div>
