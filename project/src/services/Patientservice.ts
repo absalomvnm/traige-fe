@@ -208,7 +208,7 @@ export interface CreateAssessmentPayload {
   foetalMonitoring?: FoetalMonitoring;
   vaginalExam?: VaginalExam;
   riskFactors?: RiskFactors;
-  urinaryAnalysis?: { protein?: string; leukocytes?: string; haematuria?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string };
+  urinaryAnalysis?: { protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string };
 }
 
 export interface ChecklistItem {
@@ -821,15 +821,15 @@ export const patientService = {
     }),
 
   /** POST /assessments/{id}/urinary-analysis — fire on Step 2 urinalysis entry */
-  submitUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; haematuria?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
+  submitUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
     request<SectionResponse>("POST", `/assessments/${assessmentId}/urinary-analysis`, payload),
 
   /** GET /assessments/{id}/urinary-analysis — load existing urinalysis for pre-population */
-  getUrinaryAnalysis: (assessmentId: number): Promise<{ urinaryAnalysis: { protein?: string; leukocytes?: string; haematuria?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } }> =>
+  getUrinaryAnalysis: (assessmentId: number): Promise<{ urinaryAnalysis: { protein?: string; leukocytes?: string;  blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } }> =>
     request("GET", `/assessments/${assessmentId}/urinary-analysis`),
 
   /** PUT /assessments/{id}/urinary-analysis — update existing urinalysis on re-triage */
-  updateUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; haematuria?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
+  updateUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
     request<SectionResponse>("PUT", `/assessments/${assessmentId}/urinary-analysis`, payload),
 
   /** POST /assessments/foetal — fire on Step 3 foetal monitoring entry */
@@ -853,7 +853,7 @@ export const patientService = {
 
   /** POST /assessments/urinary-analysis — inline section submission with rule evaluation (no assessment id in path) */
   submitInlineUrinaryAnalysis: (
-    payload: { patientId: number; userId?: number; protein?: string; leukocytes?: string; haematuria?: string;blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string },
+    payload: { patientId: number; userId?: number; protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string },
   ): Promise<SectionResponse> =>
     request<SectionResponse>("POST", "/assessments/urinary-analysis", payload),
 

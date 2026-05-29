@@ -62,7 +62,6 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
           ...p,
           Protein: fromApi(u.protein),
           Leukocytes: fromApi(u.leukocytes),
-          Haematuria: fromApi(u.haematuria),
           Blood: fromApi(u.blood),
           Nitrite: fromApi(u.nitrite),
           Glucose: fromApi(u.glucose),
@@ -200,6 +199,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     const toUrineVal = (raw: any) => {
       if (raw === "Neg") return "Neg";
       if (raw === "Pos") return "Pos";
+      if (raw === "0") return "0";
       if (raw) return `${raw}+`;
       return "none";
     };
@@ -208,7 +208,6 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     const urinePayload = {
       protein: toUrineVal(f.Protein),
       leukocytes: toUrineVal(f.Leukocytes),
-      haematuria: toUrineVal(f.Haematuria),
       blood: toUrineVal(f.Blood),
       nitrite: toUrineVal(f.Nitrite),
       glucose: toUrineVal(f.Glucose),
@@ -808,14 +807,13 @@ const IMPRESSION_MAP: Record<string, string> = {
               <div aria-hidden style={{ height: 1.5, background: `linear-gradient(to right, transparent, ${C.borderMid || "#CBD5E1"} 15%, ${C.borderMid || "#CBD5E1"} 85%, transparent)`, margin: "24px 0 18px" }} />
               <SectionLabel color={C.green} mb={14}>Urinalysis</SectionLabel>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <ComboSel label="Protein" opts={[1, 2, 3].map((v) => ({ v: String(v), lb: `${v}+` }))} value={f.Protein} onChange={s("Protein")} />
-                <ComboSel label="Leukocytes" opts={[1, 2, 3].map((v) => ({ v: String(v), lb: `${v}+` }))} value={f.Leukocytes} onChange={s("Leukocytes")} />
-                <ComboSel label="Haematuria" opts={[1, 2, 3].map((v) => ({ v: String(v), lb: `${v}+` }))} value={f.Haematuria} onChange={s("Haematuria")} />
-                <ComboSel label="Blood" opts={['Neg',1, 2, 3].map((v) => ({ v: String(v), lb: v === 'Neg' ? 'Neg' : `${v}+` }))} value={f.Blood} onChange={s("Blood")} /> 
+                <ComboSel label="Protein" opts={[0, 1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Protein} onChange={s("Protein")} />
+                <ComboSel label="Leukocytes" opts={[0, 1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Leukocytes} onChange={s("Leukocytes")} />
+                <ComboSel label="Blood" opts={[0 ,1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Blood} onChange={s("Blood")} /> 
                 <ComboSel label="Nitrite" opts={['Neg','Pos'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.Nitrite} onChange={s("Nitrite")} />   
-                <ComboSel label="Glucose" opts={[1, 2, 3].map((v) => ({ v: String(v), lb: `${v}+` }))} value={f.Glucose} onChange={s("Glucose")} />
+                <ComboSel label="Glucose" opts={[0, 1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Glucose} onChange={s("Glucose")} />
                 <ComboSel label="SG" opts={['1.000', '1.005', '1.010', '1.015'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.SG} onChange={s("SG")} />  
-                <ComboSel label="Bilirubin" opts={['Neg',1, 2, 3].map((v) => ({ v: String(v), lb: v === 'Neg' ? 'Neg' : `${v}+` }))} value={f.Bilirubin} onChange={s("Bilirubin")} />
+                <ComboSel label="Bilirubin" opts={[0 ,1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Bilirubin} onChange={s("Bilirubin")} />
                 <ComboSel label="pH" opts={['5', '6', '6.5', '7'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.ph} onChange={s("ph")} />         
               </div>
 
