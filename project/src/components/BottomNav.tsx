@@ -43,18 +43,24 @@ export function BottomNav({
       style={{
         position: "fixed",
         bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        margin: "0 auto" ,
-        background: "rgba(255,255,255,.96)",
-        backdropFilter: "blur(16px)",
-        borderTop: `1px solid ${C.border}`,
-        display: "flex",
+        left: 0,
+        right: 0,
         zIndex: 100,
-        boxShadow: "0 -8px 24px rgba(15,23,42,.08)",
+        display: "flex",
+        justifyContent: "center",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
+      <div
+        className="app-container"
+        style={{
+          background: "rgba(255,255,255,.96)",
+          backdropFilter: "blur(16px)",
+          borderTop: `1px solid ${C.border}`,
+          display: "flex",
+          boxShadow: "0 -8px 24px rgba(15,23,42,.08)",
+        }}
+      >
       {tabs.map((tab) => {
         const isActive =
           active === tab.screen ||
@@ -185,6 +191,7 @@ export function BottomNav({
           </button>
         );
       })}
+      </div>
     </div>
   );
 }

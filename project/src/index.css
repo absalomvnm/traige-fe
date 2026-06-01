@@ -2,6 +2,13 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Base font size for rem calculations - 16px default */
+  font-size: 16px;
+  /* Support for safe areas on mobile devices */
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
 html,
 body,
 #root {
@@ -9,15 +16,174 @@ body,
   width: 100%;
   height: 100%;
   min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 body {
   background: #0A1628;
   overflow: hidden;
   overscroll-behavior: none;
+  /* Prevent pull-to-refresh on mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   min-height: 100dvh;
   overflow: hidden;
+  /* Global readability boost: scale the whole app ~8% larger. Because the UI
+     uses pixel-based inline styles throughout, a root rem change won't cascade,
+     so we use `zoom` to proportionally enlarge text, spacing and icons app-wide.
+     Adjust this single value to tune overall app text/UI size. */
+  zoom: 1.08;
+}
+
+/* Firefox < 126 doesn't support `zoom`; fall back to a transform scale. */
+@supports not (zoom: 1) {
+  #root {
+    transform: scale(1.08);
+    transform-origin: top center;
+    width: calc(100% / 1.08);
+    margin: 0 auto;
+  }
+}
+
+
+/* ────────────────────────────────────────────
+   RESPONSIVE APP CONTAINER
+   Mobile-first: 100% on phones, progressively
+   narrower on larger viewports to simulate a
+   phone-like layout on tablets and desktops.
+   ──────────────────────────────────────────── */
+.app-container {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  height: 100%;
+}
+
+/* Small tablets and large phones (landscape) */
+@media (min-width: 640px) {
+  .app-container {
+    max-width: 540px;
+  }
+}
+
+/* Tablets (portrait) */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 540px;
+  }
+}
+
+/* Tablets (landscape) and small desktops */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 560px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1280px) {
+  .app-container {
+    max-width: 580px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1920px) {
+  .app-container {
+    max-width: 600px;
+  }
+}
+
+/* Ultra-wide displays */
+@media (min-width: 2560px) {
+  .app-container {
+    max-width: 640px;
+  }
+}
+
+/* ────────────────────────────────────────────
+   FIXED BAR CONTAINER
+   For fixed-position bottom bars, overlays etc.
+   Centers itself and constrains to app width.
+   ──────────────────────────────────────────── */
+.fixed-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+}
+
+/* ────────────────────────────────────────────
+   SCREEN CONTENT CONTAINER
+   Each screen's scrollable content area should
+   respect the app-container width.
+   ──────────────────────────────────────────── */
+.screen-content {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .screen-content {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .screen-content {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .screen-content {
+    max-width: 560px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .screen-content {
+    max-width: 580px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .screen-content {
+    max-width: 600px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .screen-content {
+    max-width: 640px;
+  }
+}
+
+/* Support for devices with notches and safe areas */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Ensure smooth scrolling on all devices */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Improve text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }

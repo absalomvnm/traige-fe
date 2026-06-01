@@ -24,13 +24,14 @@ export function ToastContainer({ toasts }: ToastContainerProps) {
 
   return (
     <div
+      className="app-container"
       style={{
         position: "fixed",
         bottom: 80, // above BottomNav
         left: "50%",
         transform: "translateX(-50%)",
-        width: "calc(100% - 32px)",
-        margin: "0 auto" ,
+        height: "auto",
+        padding: "0 16px",
         zIndex: 9999,
         display: "flex",
         flexDirection: "column",

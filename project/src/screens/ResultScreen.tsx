@@ -222,9 +222,11 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
         </div>
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, width: "100%", margin: "0 auto", boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
-        <Btn variant="ghost" onClick={onEditAssessment} s={{ flex: 1, padding: "13px 0" }}>Edit</Btn>
-        <Btn onClick={onSaveResult} s={{ flex: 2, padding: "13px 0" }}><IconCheck size={14} color="white" style={{ marginRight: 6 }} /> Save &amp; Open Patient</Btn>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 50 }}>
+        <div className="app-container" style={{ background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, boxShadow: "0 -4px 20px rgba(0,0,0,.08)", height: "auto" }}>
+          <Btn variant="ghost" onClick={onEditAssessment} s={{ flex: 1, padding: "13px 0" }}>Edit</Btn>
+          <Btn onClick={onSaveResult} s={{ flex: 2, padding: "13px 0" }}><IconCheck size={14} color="white" style={{ marginRight: 6 }} /> Save &amp; Open Patient</Btn>
+        </div>
       </div>
     </div>
   );

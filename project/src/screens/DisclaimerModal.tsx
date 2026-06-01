@@ -19,11 +19,10 @@ export function DisclaimerModal({ onAccept }: DisclaimerModalProps) {
       }}
     >
       <div
+        className="app-container"
         style={{
           background: "#ffffff",
           borderRadius: 20,
-          width: "100%",
-          margin: "0 auto" ,
           height: "75vh",
           display: "flex",
           flexDirection: "column",
