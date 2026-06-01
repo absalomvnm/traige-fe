@@ -84,12 +84,12 @@ async function request<T>(
 export interface CreatePatientPayload {
   name: string;
   surname: string;
-  id_number: string;
+  id_number?: string;
   contact: string;
-  dob?: string;
   gestational_age_weeks?: number;
   gravida?: number;
   para?: number;
+  createdAt?: string;
 }
 
 export interface PatientResponse {
@@ -658,6 +658,11 @@ export const patientService = {
   getAllPatients: (): Promise<PatientListItem[]> =>
     request<PatientListItem[]>("GET", "/patients"),
 
+  /** GET /patients/search?q= — search patient files by name, surname, ID number or id */
+  searchPatients: (query: string): Promise<PatientListItem[]> =>
+    request<PatientListItem[]>("GET", `/patients/search?q=${encodeURIComponent(query)}`),
+
+
   /** GET /patients/:id — single patient demographics */
   getPatient: (id: number): Promise<PatientResponse> =>
     request<PatientResponse>("GET", `/patients/${id}`),
@@ -747,6 +752,10 @@ export const patientService = {
   /** GET /assessments/by-patient/:patientId */
   getAssessmentsByPatient: (patientId: number): Promise<AssessmentResponse[]> =>
     request<AssessmentResponse[]>("GET", `/assessments/by-patient/${patientId}`),
+
+  /** DELETE /assessments/:id — discard draft assessment (only works for status="in_progress") */
+  discardAssessment: (id: number): Promise<void> =>
+    request<void>("DELETE", `/assessments/${id}`),
 
   /** POST /assessments/:id/section — update one or more sections, triggers rule evaluation */
   updateAssessmentSection: (
@@ -847,9 +856,10 @@ export const patientService = {
   /** POST /assessments/{id}/risk-factors — fire on Step 5 risk factor toggles */
   submitRiskFactors: (
     assessmentId: number,
-    payload: { riskFactors: RiskFactors; patientId?: number; userId?: number },
+    payload: { riskFactors: RiskFactors; patientId?: number; userId?: number; assessmentId?: number },
   ): Promise<SectionResponse> =>
     request<SectionResponse>("POST", `/assessments/${assessmentId}/risk-factors`, payload),
+
 
   /** POST /assessments/urinary-analysis — inline section submission with rule evaluation (no assessment id in path) */
   submitInlineUrinaryAnalysis: (

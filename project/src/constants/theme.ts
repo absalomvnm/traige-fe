@@ -44,13 +44,25 @@ export const C = {
   // Custom orange for chips
   orange: "#EA580C",
   orangeL: "#FFF7ED",
+
+  // Neutral "nude" tones for draft / incomplete (P0) assessments — a calm
+  // warm-grey that reads as "no priority assigned yet" rather than an alarm.
+  p0: "#8A8577",
+  p0bg: "#F4F2EC",
+  p0b: "#E0DBCF",
+  p0grd: "linear-gradient(135deg,#A8A294 0%,#7C7768 100%)",
 };
 
-export const pC = (p: number) => [null, C.p1, C.p2, C.p3, C.p4][p] as string;
-export const pBg = (p: number) => [null, C.p1bg, C.p2bg, C.p3bg, C.p4bg][p] as string;
+// Priority 0 represents a draft / in-progress assessment with no priority yet.
+// It is rendered in a neutral nude tone so the operator immediately reads it as
+// "incomplete" instead of mistaking it for a real triage band.
+export const pC = (p: number) => [C.p0, C.p1, C.p2, C.p3, C.p4][p] as string;
+export const pBg = (p: number) => [C.p0bg, C.p1bg, C.p2bg, C.p3bg, C.p4bg][p] as string;
 export const pGrd = (p: number) =>
-  [null, C.p1grd, C.p2grd, C.p3grd, C.p4grd][p] as string;
+  [C.p0grd, C.p1grd, C.p2grd, C.p3grd, C.p4grd][p] as string;
 export const pLbl = (p: number) =>
   [null, "EMERGENCY", "VERY URGENT", "URGENT", "NON-URGENT"][p];
 export const pTm = (p: number) =>
   [null, "Immediate", "≤ 10 minutes", "≤ 30 minutes", "≤ 1 hour"][p];
+
+

@@ -18,7 +18,70 @@ export function splitName(value = ""): { name: string; surname: string } {
   return { name: parts[0] || "", surname: parts.slice(1).join(" ") };
 }
 
+// The triage workflow is broken into this many sections. An assessment is only
+// considered an in-progress *draft* while it still has sections outstanding.
+export const TOTAL_TRIAGE_SECTIONS = 6;
+
+// Count how many triage sections a queue item / assessment has completed.
+// Accepts either the mapped queue item (`completedSections`) or a raw
+// `latestAssessment` so callers can pass whichever they have on hand.
+export function getCompletedSectionCount(source: any): number {
+  if (!source) return 0;
+  const direct = source.completedSections ?? source.latestAssessment?.completedSections;
+  return Array.isArray(direct) ? direct.length : 0;
+}
+
+// Single source of truth for "is this assessment still a draft?".
+//
+// A record is a draft only while triage is genuinely incomplete — i.e. the
+// triage engine has not yet produced a clinical priority. Two decisive rules
+// override every heuristic below:
+//
+//   1. If triage has produced a real priority (`finalPriorityId`/`rulePriorityId`/
+//      `aiPriorityId` set, or `priority`/`p` > 0), the record is NEVER a draft —
+//      even if its status string is still "in_progress" (patient under care).
+//      The backend is authoritative here; the FE must not re-derive "draft" from
+//      the status text once a priority exists. This was the root cause of P2
+//      patients being rendered as DRAFT across the queue / summary screens.
+//
+//   2. If ALL sections are complete, the record is never a draft either.
+//
+// Only when neither holds do we fall back to the backend's `isDraft` flag.
+export function isAssessmentDraft(source: any): boolean {
+  if (!source) return false;
+  const la = source.latestAssessment ?? source;
+  const completed = getCompletedSectionCount(source);
+
+  // (1) A scored assessment is never a draft, whatever its status text says.
+  if (hasTriagePriority(source)) return false;
+
+  // (2) Fully completed → never a draft.
+  if (completed >= TOTAL_TRIAGE_SECTIONS) return false;
+
+  // Otherwise defer to the backend's explicit draft signal. We intentionally
+  // no longer infer "draft" from a raw "in_progress" status string, because the
+  // backend now keeps assessments "in_progress" while they carry a real
+  // priority — treating that as a draft would re-introduce the overlap bug.
+  return la?.isDraft === true || source?.isDraft === true;
+}
+
+// True once the triage engine has produced a priority for this record. Mirrors
+// the backend's `hasTriagePriority` so FE and BE agree on what "triaged" means.
+export function hasTriagePriority(source: any): boolean {
+  if (!source) return false;
+  const la = source.latestAssessment ?? source;
+  const priority = la?.priority ?? source?.p ?? 0;
+  return (
+    la?.finalPriorityId != null ||
+    la?.rulePriorityId != null ||
+    la?.aiPriorityId != null ||
+    Number(priority) > 0
+  );
+}
+
+
 export function getStatusBundle(priority: number): StatusBundle {
+
   if (priority === 1)
     return { status: "Pending transfer", location: "Triage room", reassessDue: "Immediate" };
   if (priority === 2)
@@ -146,6 +209,55 @@ export function buildAssessmentForm(initialData: any = {}): AssessmentForm {
   const bpParts = String(safeInitialData.bp || "").split("/");
   const baseRiskFactors = Object.fromEntries(RISK_FACTORS.map((r) => [r.k, false]));
 
+  // Rehydrate risk factors from a previously-persisted assessment so the
+  // Risk Factors multi-select (incl. custom free-text chips) round-trips on
+  // re-triage. The backend stores standard factors as `<key>: true` booleans
+  // and custom factors as `custom_<slug>: true` keys + a comma-joined
+  // `custom_risk_factor_labels` string.
+  //
+  // Resolution order:
+  //   1. latestAssessment.riskFactors (from GET /patients/:id/summary or GET /assessments/:id)
+  //   2. riskFactors at top level (from queue item or re-triage initialData)
+  //   3. risk_factors (snake_case alias)
+  //   4. riskFactorsObj (already-parsed form state)
+  const rawRiskFactors =
+    safeInitialData.latestAssessment?.riskFactors ||
+    safeInitialData.riskFactors ||
+    safeInitialData.risk_factors ||
+    safeInitialData.riskFactorsObj ||
+    null;
+  let riskFactorsObj: Record<string, any> | null = null;
+  if (rawRiskFactors && typeof rawRiskFactors === "object") {
+    riskFactorsObj = rawRiskFactors as Record<string, any>;
+  } else if (typeof rawRiskFactors === "string" && rawRiskFactors.trim().startsWith("{")) {
+    try { riskFactorsObj = JSON.parse(rawRiskFactors); } catch { riskFactorsObj = null; }
+  }
+
+
+  const riskCondKeys: string[] = riskFactorsObj
+    ? RISK_FACTORS.map((r) => r.k).filter((k) => riskFactorsObj![k] === true || riskFactorsObj![k] === "true")
+    : [];
+
+  let rfCustom: string[] = [];
+  if (riskFactorsObj) {
+    const labels = riskFactorsObj["custom_risk_factor_labels"];
+    if (typeof labels === "string" && labels.trim()) {
+      rfCustom = labels.split(",").map((s: string) => s.trim()).filter(Boolean);
+    }
+    // Fall back to any `custom_<slug>: true` keys whose label wasn't captured.
+    for (const [k, v] of Object.entries(riskFactorsObj)) {
+      if ((k.startsWith("custom_") || k.startsWith("custom:")) && k !== "custom_risk_factor_labels" && (v === true || v === "true")) {
+        const label = k.replace(/^custom[:_]/, "").replace(/_/g, " ").trim();
+        if (label && !rfCustom.some((e) => e.toLowerCase() === label.toLowerCase())) rfCustom.push(label);
+      }
+    }
+  }
+
+  const rehydratedRiskFactors = riskFactorsObj
+    ? Object.fromEntries(RISK_FACTORS.map((r) => [r.k, riskCondKeys.includes(r.k)]))
+    : baseRiskFactors;
+
+
   let condKeys = safeInitialData.condKeys || [];
 
   if (safeInitialData.condKey && !condKeys.length) {
@@ -222,12 +334,18 @@ export function buildAssessmentForm(initialData: any = {}): AssessmentForm {
     vaginalNotes: safeInitialData.vaginalNotes || safeInitialData.examination_notes || "",
     vitalSignsNotes: safeInitialData.vitalSignsNotes || "",
     cell: safeInitialData.cell || safeInitialData.contact || "+27",
-    // Risk factors always start unchecked — the clinician must explicitly
-    // select them for each triage / re-triage encounter rather than having
-    // stale flags carried over from a prior assessment or patient record.
-    ...baseRiskFactors,
-  };
+    // Risk factors: rehydrate from the persisted assessment when present so
+    // standard selections AND custom free-text factors round-trip on
+    // re-triage. When there is no prior assessment data, factors start
+    // unchecked — the clinician must explicitly select them for a fresh
+    // encounter rather than inheriting stale flags from the patient record.
+    ...rehydratedRiskFactors,
+    riskFactorsObj: riskFactorsObj || undefined,
+    riskCondKeys,
+    rfCustom,
+  } as AssessmentForm;
 }
+
 
 export function buildPatientFromAssessment(
   result: any,

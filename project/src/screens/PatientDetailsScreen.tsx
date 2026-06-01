@@ -12,7 +12,8 @@ import { C, pBg, pC, pGrd, pLbl, pTm } from "../constants/theme";
 import { resolveConditionName, resolveConditionSource } from "../services/catalogService";
 import type { ManagementProcedure } from "../services/Patientservice";
 import { fetchImageAsBlobUrl, patientService, resolveAssetUrl } from "../services/Patientservice";
-import { fullName, timelineEntry } from "../utils/helpers";
+import { fullName, isAssessmentDraft, timelineEntry } from "../utils/helpers";
+
 import { getRealtimeVitalAlerts } from "../utils/triage";
 
 interface PatientDetailsScreenProps {
@@ -38,9 +39,23 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
   const [showAllCtg, setShowAllCtg] = useState(false);
   const [showAllTimeline, setShowAllTimeline] = useState(false);
   if (!patient) return null;
-  const { age, ga, p, t, cond, bp, hr, rr, spo, fhr, cx } = patient;
+  const { age, ga, t, cond, bp, hr, rr, spo, fhr, cx } = patient;
+
+  // Determine whether this assessment is still a draft (in-progress triage with
+  // no priority assigned yet). Drafts are rendered in a neutral nude tone with a
+  // "DRAFT" label instead of a real priority band. For completed assessments
+  // that somehow lack a priority we default to P4 (non-urgent) so the screen
+  // never renders a broken "P0" header.
+  const rawP = patient.p;
+  // Single source of truth for "is this still a draft?" — a fully completed
+  // assessment (all sections done) is never treated as a draft even if the
+  // backend left priority at 0 / an isDraft flag set.
+  const isDraft = isAssessmentDraft(patient) || isAssessmentDraft(patient.latestAssessment);
+  const p = isDraft ? 0 : (rawP && rawP >= 1 && rawP <= 4 ? rawP : 4);
+
   const col = pC(p);
-  const guide = MGMT[p];
+  const guide = isDraft ? undefined : MGMT[p];
+
 
   const userId: number = currentUser?.id ? Number(currentUser.id) : 0;
 
@@ -364,11 +379,22 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           <button onClick={() => onNav("patients")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
           <span style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Patient Details</span>
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Priority</div>
-        <div style={{ fontSize: 52, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>P{p}</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "rgba(255,255,255,.9)", marginTop: 2 }}>{pLbl(p)}</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,.7)", marginTop: 6, fontWeight: 500 }}>Target: {pTm(p)}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>{isDraft ? "Status" : "Priority"}</div>
+        {isDraft ? (
+          <>
+            <div style={{ fontSize: 44, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>Draft</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "rgba(255,255,255,.92)", marginTop: 4 }}>Triage incomplete</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,.78)", marginTop: 6, fontWeight: 500 }}>No priority assigned yet — resume to complete the assessment</div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 52, fontWeight: 900, color: "white", lineHeight: 1, marginTop: 4, letterSpacing: "-.02em" }}>P{p}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "rgba(255,255,255,.9)", marginTop: 2 }}>{pLbl(p)}</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,.7)", marginTop: 6, fontWeight: 500 }}>Target: {pTm(p)}</div>
+          </>
+        )}
       </div>
+
 
       <div style={{ padding: "0 14px 20px", marginTop: -32 }}>
         <Card className="fade-up" s={{ marginBottom: 12, boxShadow: "0 6px 20px rgba(0,0,0,.1)" }}>
@@ -399,8 +425,56 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           <div style={{ marginTop: 10 }}><Tag priority={p} /></div>
         </Card>
 
+        {/* Re-triage action — prominent, full-width card so clinicians can quickly
+            re-run the assessment if the patient's condition changes. */}
+        <button
+          type="button"
+          onClick={() => onRetriage(patient)}
+          className="fade-up btn-press"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            textAlign: "left",
+            background: C.gradTeal,
+            border: "none",
+            borderRadius: 16,
+            padding: "16px 18px",
+            marginBottom: 12,
+            cursor: "pointer",
+            boxShadow: `0 6px 18px ${C.teal}33`,
+            animationDelay: ".02s",
+          }}
+        >
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 13,
+              background: "rgba(255,255,255,.22)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <IconRefresh size={20} color="white" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "white", letterSpacing: "-.01em" }}>Re-triage Patient</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.85)", marginTop: 2, lineHeight: 1.4 }}>
+              Reassess vitals &amp; symptoms to update the priority
+            </div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
         <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".03s" }}>
           <SectionLabel mb={12}>Status &amp; Disposition</SectionLabel>
+
           <Sel label="Current Status" opts={STATUS_OPTIONS} value={patient.status} onChange={(e: any) => updateField("status", e.target.value)} />
           <Sel label="Current Location" opts={LOCATION_OPTIONS} value={patient.location} onChange={(e: any) => updateField("location", e.target.value)} />
           <Inp label="Reassess Window" value={patient.reassessDue} onChange={(e: any) => updateField("reassessDue", e.target.value)} />
@@ -1011,6 +1085,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
             <SectionLabel mb={0}>Patient Timeline</SectionLabel>
             <Btn variant="teal" onClick={() => onRetriage(patient)} s={{ padding: "8px 14px", fontSize: 12 }}><IconRefresh size={12} color="white" style={{ marginRight: 4 }} /> Re-triage</Btn>
           </div>
+
+
           {(() => {
             const all = patient.timeline || [];
             const PREVIEW = 5;
@@ -1072,10 +1148,12 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
         </Card>
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, width: "100%", margin: "0 auto" , boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 50 }}>
+          <div className="app-container" style={{ background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, boxShadow: "0 -4px 20px rgba(0,0,0,.08)", height: "auto" }}>
         <Btn variant="ghost" onClick={() => onNav("patients")} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>
-        <Btn onClick={() => onNav("welcome")} s={{ flex: 2, padding: "13px 0" }}>Dashboard</Btn>
-      </div>
+          <Btn onClick={() => onNav("welcome")} s={{ flex: 2, padding: "13px 0" }}>Dashboard</Btn>
+          </div>
+        </div>
 
       {/* CTG Lightbox */}
       {ctgLightbox && (
@@ -1107,7 +1185,8 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: C.bg, borderRadius: "20px 20px 0 0", maxHeight: "75dvh", overflowY: "auto", padding: "20px 16px 32px", width: "100%", margin: "0 auto"  }}
+            className="app-container"
+            style={{ background: C.bg, borderRadius: "20px 20px 0 0", maxHeight: "75dvh", overflowY: "auto", padding: "20px 16px 32px", height: "auto" }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>

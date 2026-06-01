@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MultiConditionSelect } from "../components/MultiConditionSelect";
-import { IconArrowLeft, IconArrowRight, IconBolt, IconCheck, IconHeartPulse, IconPill, IconSiren, IconStethoscope, IconTestTube, IconUser, IconWarning } from "../components/icons";
+import { IconArrowLeft, IconArrowRight, IconBolt, IconSiren, IconStethoscope, IconWarning } from "../components/icons";
+
 import { Btn, Card, ComboSel, Hdr, Inp, SectionLabel, Sel, Txt } from "../components/ui";
 import { STEPS } from "../constants/options";
 import { C, pBg, pC } from "../constants/theme";
@@ -8,6 +9,7 @@ import { patientService } from "../services/Patientservice";
 import { buildAssessmentForm, formatCellNumber, parseSAID, validateCellNumber } from "../utils/helpers";
 import { calcPriority, getRealtimeVitalAlerts } from "../utils/triage";
 import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
+import { DuplicatePatientBanner, type DuplicateMatch } from "../components/DuplicatePatientBanner";
 
 // Signs & symptoms condition keys — used in both step-2 persist and go()-fallback
 const SS_KEYS = [
@@ -73,6 +75,65 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
       .catch(() => { /* no urinalysis yet — leave fields blank */ });
   }, []);
 
+  // When the operator reaches Step 5, fetch the persisted risk factors from
+  // the backend and hydrate the form. This covers:
+  //   (a) re-triage: the previous assessment already has risk factors stored
+  //   (b) mid-session: the operator navigated back from Step 5 and returned
+  // We use the assessmentId from the live form state (f) — not initialData —
+  // so it works even when Step 1 just created a new assessment this session.
+  useEffect(() => {
+    if (step !== 5) return;
+    const aId = (f as any).assessmentId as number | undefined;
+    if (!aId) return;
+    console.log("[TRIAGE] Step 5 entered — fetching persisted risk factors for assessmentId:", aId);
+    patientService.getAssessment(aId)
+      .then((assessment) => {
+        // riskFactors comes back as a JSON string or object depending on BE version
+        let rf = assessment.riskFactors;
+        if (typeof rf === "string" && rf.trim().startsWith("{")) {
+          try { rf = JSON.parse(rf); } catch { rf = undefined; }
+        }
+        if (!rf || typeof rf !== "object") {
+          console.log("[TRIAGE] Step 5 — no persisted risk factors found");
+          return;
+        }
+        const rfObj = rf as Record<string, any>;
+        const STANDARD_KEYS = [
+          "previous_caesarean", "chronic_hypertension", "diabetes_mellitus",
+          "grand_multiparity", "advanced_maternal_age", "multiple_pregnancy",
+          "rhesus_incompatibility", "hiv_positive", "severe_anaemia", "previous_pph",
+        ];
+        const riskCondKeys = STANDARD_KEYS.filter((k) => rfObj[k] === true || rfObj[k] === "true");
+        // Rehydrate custom labels from the comma-joined labels string the backend stores
+        let rfCustom: string[] = [];
+        const labelsStr = rfObj["custom_risk_factor_labels"];
+        if (typeof labelsStr === "string" && labelsStr.trim()) {
+          rfCustom = labelsStr.split(",").map((s: string) => s.trim()).filter(Boolean);
+        }
+        // Fall back to scanning custom_<slug>: true keys
+        if (!rfCustom.length) {
+          for (const [k, v] of Object.entries(rfObj)) {
+            if (k.startsWith("custom_") && k !== "custom_risk_factor_labels" && (v === true || v === "true")) {
+              const label = k.replace(/^custom_/, "").replace(/_/g, " ").trim();
+              if (label) rfCustom.push(label);
+            }
+          }
+        }
+        console.log("[TRIAGE] Step 5 — hydrating risk factors from backend:", { riskCondKeys, rfCustom });
+        sf((prev: any) => ({
+          ...prev,
+          riskCondKeys,
+          rfCustom,
+          riskFactorsObj: Object.fromEntries(STANDARD_KEYS.map((k) => [k, riskCondKeys.includes(k)])),
+        }));
+      })
+      .catch((err) => {
+        console.warn("[TRIAGE] Step 5 — could not fetch persisted risk factors:", err);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+
   // Fire-and-forget wrapper: logs start, success, and failure
   function fireApi(promise: Promise<any>, label: string) {
     console.log(`[TRIAGE API] Firing: ${label}`);
@@ -85,6 +146,42 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
         console.warn(`[TRIAGE API] ${label} — failed (non-blocking):`, err);
         toast?.error(`Could not save ${label}`);
       });
+  }
+
+  // Operator confirmed a possible-duplicate match: pull the full patient record
+  // and pre-populate the demographics form, binding it to the existing patient
+  // so Step 1 re-uses their file instead of creating a duplicate.
+  async function handleUseExistingPatient(match: DuplicateMatch) {
+    try {
+      console.log("[TRIAGE] Using existing patient from duplicate match:", match.id);
+      const full = await patientService.getPatient(match.id);
+      sf((p: any) => ({
+        ...p,
+        patientId: full.id,
+        patientFileId: full.patientFileId,
+        name: full.name ?? p.name,
+        surname: full.surname ?? p.surname,
+        idNumber: (full as any).id_number ?? p.idNumber,
+        cell: full.contact ?? p.cell,
+        gestAge: full.gestational_age_weeks != null ? String(full.gestational_age_weeks) : p.gestAge,
+        gravida: full.gravida != null ? String(full.gravida) : p.gravida,
+        para: full.para != null ? String(full.para) : p.para,
+      }));
+      setIdError(null);
+      toast?.success(`Linked to existing record: ${full.name} ${full.surname}`);
+    } catch (err) {
+      console.warn("[TRIAGE] Failed to load full patient — using list fields only:", err);
+      // Fall back to the lightweight list data we already have.
+      sf((p: any) => ({
+        ...p,
+        patientId: match.id,
+        patientFileId: match.patientFileId,
+        name: match.name ?? p.name,
+        surname: match.surname ?? p.surname,
+        idNumber: match.idNumber ?? p.idNumber,
+      }));
+      toast?.info(`Linked to existing record: ${match.name} ${match.surname}`);
+    }
   }
 
   // Step 1 → 2: create patient record (new) or reuse existing (re-triage) + open an in-progress assessment
@@ -102,7 +199,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
         const data = await patientService.createPatient({
           name: f.name,
           surname: f.surname,
-          id_number: f.idNumber,
+          id_number: f.idNumber && f.idNumber.trim() !== "" ? f.idNumber : undefined,
           contact: f.cell || "",
           gestational_age_weeks: f.gestAge !== "" && f.gestAge !== undefined ? Number(f.gestAge) : undefined,
           gravida: f.gravida !== "" && f.gravida !== undefined ? Number(f.gravida) : undefined,
@@ -143,7 +240,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
             name: f.name,
             surname: f.surname,
             contact: f.cell || undefined,
-            id_number: f.idNumber || undefined,
+            id_number: f.idNumber && f.idNumber.trim() !== "" ? f.idNumber : undefined,
             gestational_age_weeks: f.gestAge !== "" && f.gestAge !== undefined ? Number(f.gestAge) : undefined,
             gravida: f.gravida !== "" && f.gravida !== undefined ? Number(f.gravida) : undefined,
             para: f.para !== "" && f.para !== undefined ? Number(f.para) : undefined,
@@ -278,9 +375,63 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     );
   }
 
+  // Build the risk-factors payload from the Step-5 selections. Standard
+  // factors are emitted as `<key>: true|false` booleans; custom free-text
+  // factors (stored as `custom:<label>` keys by MultiRiskFactorSelect) are
+  // sent as a `custom_risk_factors: [labels]` array which the backend expands
+  // into `custom_<slug>: true` booleans + a `custom_risk_factor_labels` string.
+  function buildRiskFactorsPayload(): Record<string, any> {
+    const selected = new Set<string>((f.riskCondKeys as string[]) || []);
+    const customLabels = ((f.rfCustom as string[]) || [])
+      .map((l) => String(l).trim())
+      .filter(Boolean);
+    const payload: Record<string, any> = {
+      previous_caesarean: selected.has("previous_caesarean"),
+      chronic_hypertension: selected.has("chronic_hypertension"),
+      diabetes_mellitus: selected.has("diabetes_mellitus"),
+      grand_multiparity: selected.has("grand_multiparity"),
+      advanced_maternal_age: selected.has("advanced_maternal_age"),
+      multiple_pregnancy: selected.has("multiple_pregnancy"),
+      rhesus_incompatibility: selected.has("rhesus_incompatibility"),
+      hiv_positive: selected.has("hiv_positive"),
+      severe_anaemia: selected.has("severe_anaemia"),
+      previous_pph: selected.has("previous_pph"),
+    };
+    if (customLabels.length) payload.custom_risk_factors = customLabels;
+    return payload;
+  }
+
+  // Step 5 persist: POST risk factors to /assessments/{id}/risk-factors so the
+  // selections are stored even if the operator navigates away before pressing
+  // "Generate Triage Result". Mirrors persistStep2-4 (fire-and-forget).
+  function persistStep5() {
+    const aId = (f as any).assessmentId as number | undefined;
+    const pId = (f as any).patientId as number | undefined;
+    if (!aId || !pId) {
+      console.warn("[TRIAGE] Step 5 persist skipped — no assessmentId/patientId");
+      return;
+    }
+    const userId = currentUser?.id ? Number(currentUser.id) : 0;
+    const riskFactors = buildRiskFactorsPayload();
+    console.log("[TRIAGE] Step 5 — persisting risk factors", { assessmentId: aId, riskFactors });
+    // Include assessmentId in the body so the backend's submitSectionWithEval
+    // can find the assessment directly (line 1331 of AssessmentResource) rather
+    // than falling back to the slower patientId + status="in_progress" lookup.
+    fireApi(
+      patientService.submitRiskFactors(aId, { patientId: pId, userId, assessmentId: aId, riskFactors }),
+      "risk factors"
+    );
+
+  }
+
   async function go() {
+    // Ensure the latest risk-factor selections are persisted before the
+    // generate pipeline runs (covers the case where Step 5 was edited after
+    // the auto-persist fired, or persist was skipped).
+    persistStep5();
     setGenerating(true);
     setGenStage("Preparing assessment…");
+
     try {
       await runGo();
     } finally {
@@ -295,20 +446,14 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     let assessmentId = (f as any).assessmentId as number | undefined;
     const userId = currentUser?.id ? Number(currentUser.id) : 0;
 
-    const selectedRiskFactors = new Set<string>((f.riskCondKeys as string[]) || []);
+    // Build once via the shared helper so standard booleans AND custom
+    // free-text factors (from f.rfCustom) are included consistently across
+    // the submit, evaluate, and fallback-create paths below. NOTE: custom
+    // labels live in f.rfCustom — they are NOT in f.riskCondKeys — so reading
+    // them from riskCondKeys here previously dropped every custom factor.
+    const riskFactorsPayload: Record<string, any> = buildRiskFactorsPayload();
 
-    const riskFactorsPayload = {
-      previous_caesarean: selectedRiskFactors.has("previous_caesarean"),
-      chronic_hypertension: selectedRiskFactors.has("chronic_hypertension"),
-      diabetes_mellitus: selectedRiskFactors.has("diabetes_mellitus"),
-      grand_multiparity: selectedRiskFactors.has("grand_multiparity"),
-      advanced_maternal_age: selectedRiskFactors.has("advanced_maternal_age"),
-      multiple_pregnancy: selectedRiskFactors.has("multiple_pregnancy"),
-      rhesus_incompatibility: selectedRiskFactors.has("rhesus_incompatibility"),
-      hiv_positive: selectedRiskFactors.has("hiv_positive"),
-      severe_anaemia: selectedRiskFactors.has("severe_anaemia"),
-      previous_pph: selectedRiskFactors.has("previous_pph"),
-    };
+
 
     if (assessmentId && f.patientId) {
       setGenStage("Saving risk factors…");
@@ -506,13 +651,6 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     onNav("result");
   }
 
-  const stepIcons = [
-    <IconUser size={14} />,
-    <IconPill size={14} />,
-    <IconHeartPulse size={14} />,
-    <IconTestTube size={14} />,
-    <IconWarning size={14} />,
-  ];
 
 const IMPRESSION_MAP: Record<string, string> = {
   eclampsia: "Impression: Eclampsia / Seizures",
@@ -560,19 +698,89 @@ const IMPRESSION_MAP: Record<string, string> = {
       <div style={{ background: C.borderMid, height: 4, flexShrink: 0 }}>
         <div style={{ background: C.gradGreen, height: "100%", width: `${pct}%`, transition: "width .4s cubic-bezier(.22,1,.36,1)", borderRadius: "0 4px 4px 0", boxShadow: "0 0 8px rgba(30,123,71,.4)" }} />
       </div>
-      <div style={{ background: C.bg, padding: "10px 12px", display: "flex", gap: 6, overflowX: "auto", flexShrink: 0, borderBottom: `1px solid ${C.border}` }}>
-        {STEPS.map((st, i) => (
-          <div key={st} onClick={() => setStep(i + 1)} style={{
-            padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap", transition: "all .15s",
-            background: step === i + 1 ? C.gradGreen : step > i + 1 ? C.greenL : "transparent",
-            color: step === i + 1 ? "white" : step > i + 1 ? C.green : C.textMuted,
-            border: `1.5px solid ${step === i + 1 ? C.green : step > i + 1 ? C.greenL : C.border}`,
-            boxShadow: step === i + 1 ? "0 2px 8px rgba(30,123,71,.3)" : "none",
+      {/* Step stepper — numbered dots with a short label under EACH dot so every
+          step is clearly distinguishable (avoids the "everything looks like the
+          same step" confusion). Active step is enlarged + coloured; the row also
+          shows an explicit "Step X of N" pill above it for extra clarity. */}
+      <div style={{ background: C.bg, padding: "10px 12px 12px", flexShrink: 0, borderBottom: `1px solid ${C.border}` }}>
+        {/* Explicit current-step context */}
+        <div style={{ textAlign: "center", marginBottom: 10 }}>
+          <span style={{
+            display: "inline-block", padding: "3px 12px", borderRadius: 999,
+            background: C.greenL, color: C.green, fontSize: 12, fontWeight: 800,
+            letterSpacing: "0.04em",
           }}>
-            {stepIcons[i]} {st}
-          </div>
-        ))}
+            Step {step} of {STEPS.length}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          {STEPS.map((st, i) => {
+            const num = i + 1;
+            const isActive = step === num;
+            const isDone = step > num;
+            // Short, distinct label per step for at-a-glance recognition.
+            const shortLabels = ["Patient", "Symptoms", "Foetal", "Vaginal", "Risk"];
+            const shortLabel = shortLabels[i] ?? st;
+            return (
+              <div key={st} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, minWidth: 0 }}>
+                {/* Dot + connector row */}
+                <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                  {/* Left connector (hidden on first) */}
+                  <div style={{
+                    flex: 1, height: 3,
+                    background: i === 0 ? "transparent" : (step > i ? C.green : C.borderMid),
+                    transition: "background .3s", borderRadius: 2,
+                  }} />
+                  <button
+                    onClick={() => setStep(num)}
+                    title={st}
+                    aria-label={`Go to step ${num}: ${st}`}
+                    aria-current={isActive ? "step" : undefined}
+                    style={{
+                      width: isActive ? 38 : 30, height: isActive ? 38 : 30,
+                      borderRadius: "50%", cursor: "pointer",
+                      flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      fontWeight: 800, fontSize: isActive ? 16 : 14, transition: "all .2s",
+                      background: isActive ? C.gradGreen : isDone ? C.green : C.bgDeep,
+                      color: isActive || isDone ? "white" : C.textMuted,
+                      boxShadow: isActive ? "0 3px 12px rgba(30,123,71,.4)" : "none",
+                      border: !isActive && !isDone ? `2px solid ${C.borderMid}` : "none",
+                      outline: "none",
+
+                    }}
+                  >
+                    {isDone ? (
+                      <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      num
+                    )}
+                  </button>
+                  {/* Right connector (hidden on last) */}
+                  <div style={{
+                    flex: 1, height: 3,
+                    background: i === STEPS.length - 1 ? "transparent" : (step > num ? C.green : C.borderMid),
+                    transition: "background .3s", borderRadius: 2,
+                  }} />
+                </div>
+                {/* Per-step label */}
+                <div style={{
+                  marginTop: 6, fontSize: isActive ? 12 : 11,
+                  fontWeight: isActive ? 800 : 600,
+                  color: isActive ? C.green : isDone ? C.textMid : C.textMuted,
+                  textAlign: "center", lineHeight: 1.2, whiteSpace: "nowrap",
+                  transition: "all .2s",
+                }}>
+                  {shortLabel}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+
 
       <div className="fade-in" style={{ flex: 1, padding: "16px 14px 100px", overflowY: "auto" }}>
         {initialData?.id && (
@@ -586,10 +794,36 @@ const IMPRESSION_MAP: Record<string, string> = {
           <div className="fade-up">
             <Card>
               <SectionLabel color={C.green} mb={16}>Patient Demographics</SectionLabel>
+              {/* Inline possible-duplicate detection: as the operator types a
+                  name/surname/ID we surface existing patients with similar
+                  details so they can re-use one file instead of creating a
+                  duplicate. Suppressed during re-triage / once a patient is bound. */}
+              {!initialData?.id && (
+                <DuplicatePatientBanner
+                  name={f.name}
+                  surname={f.surname}
+                  idNumber={f.idNumber}
+                  boundPatientId={(f as any).patientId}
+                  onUseExisting={handleUseExistingPatient}
+                />
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <Inp label="Name" placeholder="Nomsa" value={f.name} onChange={s("name")} />
                 <Inp label="Surname" placeholder="Khumalo" value={f.surname} onChange={s("surname")} />
               </div>
+              {(f as any).patientId && !initialData?.id && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px", padding: "8px 12px", background: `${C.green}10`, border: `1px solid ${C.green}30`, borderRadius: 10 }}>
+                  <span style={{ fontSize: 12, color: C.green, fontWeight: 700 }}>
+                    ✓ Linked to existing patient file
+                  </span>
+                  <button
+                    onClick={() => sf((p: any) => ({ ...p, patientId: undefined, patientFileId: undefined, assessmentId: undefined }))}
+                    style={{ marginLeft: "auto", border: "none", background: "transparent", color: C.textMuted, fontSize: 11, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Create new instead
+                  </button>
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div>
                   <Inp label="Contact" placeholder="+27 81 674 3322" value={f.cell} type="tel"
@@ -956,16 +1190,19 @@ const IMPRESSION_MAP: Record<string, string> = {
       </div>
 
       {saveError && (
-        <div style={{ position: "fixed", bottom: 76, left: 0, right: 0, width: "100%", margin: "0 auto", padding: "0 14px", zIndex: 10 }}>
+        <div style={{ position: "fixed", bottom: 76, left: 0, right: 0, zIndex: 10, display: "flex", justifyContent: "center" }}>
+          <div className="app-container" style={{ padding: "0 14px", height: "auto" }}>
           <div style={{ background: "#FFF7ED", border: "1.5px solid #F97316", borderRadius: 12, padding: "10px 14px", fontSize: 12, color: "#9A3412", display: "flex", alignItems: "flex-start", gap: 8 }}>
             <span style={{ flexShrink: 0, fontSize: 14 }}>⚠️</span>
             <span style={{ lineHeight: 1.6 }}>{saveError}<br /><strong>You can continue — data will be re-synced when the service is available.</strong></span>
           </div>
+          </div>
         </div>
       )}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, width: "100%", margin: "0 auto", boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }}>
-        {step > 1 && <Btn variant="ghost" onClick={() => setStep((x) => x - 1)} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>}
-        {step < STEPS.length
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center" }}>
+        <div style={{ background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, boxShadow: "0 -4px 20px rgba(0,0,0,.08)" }} className="app-container">
+          {step > 1 && <Btn variant="ghost" onClick={() => setStep((x) => x - 1)} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>}
+          {step < STEPS.length
           ? <Btn
               onClick={async () => {
                 if (step === 1) {
@@ -993,7 +1230,8 @@ const IMPRESSION_MAP: Record<string, string> = {
               <IconStethoscope size={16} color="white" style={{ marginRight: 6 }} />
               {generating ? "Generating…" : "Generate Triage Result"}
             </Btn>
-        }
+          }
+        </div>
       </div>
 
       {/* Generation progress overlay — surfaces multi-second AI classifier
@@ -1015,12 +1253,12 @@ const IMPRESSION_MAP: Record<string, string> = {
           }}
         >
           <div
+            className="app-container"
             style={{
               background: C.bg,
               borderRadius: 18,
               padding: "26px 28px",
-              width: "100%", 
-              margin: "0 auto",
+              height: "auto",
               textAlign: "center",
               boxShadow: "0 12px 40px rgba(0,0,0,.3)",
               border: `1px solid ${C.border}`,

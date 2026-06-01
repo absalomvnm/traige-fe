@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
 import { authApi, type AuthUser, type LoginResponse } from "./api";
 import { ToastContainer } from "./components/ui";
 import { MGMT } from "./constants/management";
@@ -10,8 +11,10 @@ import {
 import { patientService } from "./services/Patientservice";
 import { catalogService, resolveConditionName } from "./services/catalogService";
 import { useToast } from "./state/useToast";
+import { useReviewReminders } from "./state/useReviewReminders";
 import "./styles/globalStyles";
-import { buildPatientFromAssessment, getStatusBundle, parseSAID } from "./utils/helpers";
+import { buildPatientFromAssessment, getStatusBundle, isAssessmentDraft, parseSAID } from "./utils/helpers";
+
 
 import {
   BottomNav,
@@ -58,6 +61,16 @@ export default function App() {
   const isAuthenticated = Boolean(authToken);
 
   const { toasts, toast } = useToast();
+
+  // ── Review reminders ──────────────────────────────────────────────────────
+  const { activeReminders, overdueCount, dismiss: dismissReminder, dismissAll: dismissAllReminders } =
+    useReviewReminders(isAuthenticated ? patients : [], {
+      onDue: (r) => {
+        toast.warning(`⏰ ${r.patientName} is due for reassessment (${r.reassessDue})`);
+      },
+      pollInterval: 30_000,
+      warningMinutes: 5,
+    });
 
   const allPatientFiles = [
     ...patients.map((p: any) => ({ ...p, inQueue: true })),
@@ -198,62 +211,141 @@ export default function App() {
     return () => clearInterval(id);
   }, [isAuthenticated]);
 
-  // Load patient queue from API whenever the user becomes authenticated
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    let active = true;
-    setPatientsLoading(true);
+  // Map a raw GET /patients queue item into the shape the screens expect.
+  // Handles draft (in-progress) assessments specially so the queue can render
+  // the "Resume / Discard" banner with an accurate section-completion count.
+  function mapQueueItem(item: any) {
+    const la = item.latestAssessment;
+    // Single source of truth: an assessment with all sections complete is never
+    // a draft even if the backend still reports priority 0 / isDraft.
+    const isDraft = isAssessmentDraft(item);
+    const priority = isDraft ? 0 : (la?.priority && la.priority >= 1 ? la.priority : 4);
 
-    patientService.getAllPatients()
+    const bundle = getStatusBundle(priority || 4);
+    return {
+      id: item.id,
+      patientFileId: item.patientFileId,
+      name: item.name,
+      surname: item.surname,
+      n: `${item.name} ${item.surname}`.trim(),
+      age: item.idNumber ? parseSAID(item.idNumber).age : 0,
+      ga: 0,
+      gravida: "1",
+      para: "0",
+      p: priority,
+      t: la?.assessedAt
+        ? new Date(la.assessedAt).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })
+        : "—",
+      cond: resolveConditionName(item) || la?.condition || "General review",
+      bp: "—/—",
+      hr: "—", rr: "—", spo: "—", temp: "—", fhr: "—",
+      fmov: "present", cx: "—", ctg: "",
+      // Prefer the backend status, but never surface the internal
+      // "in_progress" marker to the operator — for a scored (non-draft)
+      // assessment that still sits in_progress we show the priority-derived
+      // disposition label instead.
+      status: la?.status && !/^in[_\s-]?progress$/i.test(String(la.status))
+        ? la.status
+        : bundle.status,
+      location: bundle.location,
+
+      reassessDue: bundle.reassessDue,
+      acknowledged: la?.acknowledged ?? false,
+      handover: "",
+      outcome: "Awaiting clinical outcome",
+      outcomeNotes: "",
+      // For drafts, surface the assessment id under both fields so the
+      // Resume flow can re-open the existing in-progress assessment and the
+      // Discard flow knows which assessment to delete.
+      assessmentId: la?.id,
+      isDraft,
+      draftAssessmentId: isDraft ? (la?.draftAssessmentId ?? la?.id) : undefined,
+      completedSections: Array.isArray(la?.completedSections) ? la.completedSections : [],
+      assessedAt: la?.assessedAt,
+      managementChecklist: Array(MGMT[priority]?.length ?? 0).fill(false),
+      timeline: [],
+      // Carry full latestAssessment through so screens can access obstetricConditions etc.
+      latestAssessment: la,
+    };
+  }
+
+  // Tracks when the patient queue was last fetched + whether a fetch is already
+  // in flight, so the auto-refresh triggers (navigation / window-focus) don't
+  // hammer the API with duplicate calls. `STALE_MS` is the freshness window:
+  // navigating to a screen within this window reuses the cached data, while a
+  // longer gap (or an explicit refresh) re-fetches.
+  const lastPatientsFetch = useRef(0);
+  const patientsFetchInFlight = useRef(false);
+  const STALE_MS = 30_000;
+
+  // force = bypass the staleness guard (used by pull-to-refresh / explicit
+  // refresh buttons and after creating/discarding an assessment).
+  function loadPatients(force = false) {
+    if (patientsFetchInFlight.current) return Promise.resolve();
+    if (!force && Date.now() - lastPatientsFetch.current < STALE_MS) {
+      // Data is still fresh — skip the network round-trip.
+      return Promise.resolve();
+    }
+    patientsFetchInFlight.current = true;
+    setPatientsLoading(true);
+    return patientService.getAllPatients()
       .then((list) => {
-        if (!active || list.length === 0) return;
-        const mapped = list.map((item: any) => {
-          const priority = item.latestAssessment?.priority ?? 4;
-          const bundle = getStatusBundle(priority);
-          return {
-            id: item.id,
-            patientFileId: item.patientFileId,
-            name: item.name,
-            surname: item.surname,
-            n: `${item.name} ${item.surname}`.trim(),
-            age: item.idNumber ? parseSAID(item.idNumber).age : 0,
-            ga: 0,
-            gravida: "1",
-            para: "0",
-            p: priority,
-            t: item.latestAssessment?.assessedAt
-              ? new Date(item.latestAssessment.assessedAt).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })
-              : "—",
-            cond: resolveConditionName(item) || item.latestAssessment?.condition || "General review",
-            bp: "—/—",
-            hr: "—", rr: "—", spo: "—", temp: "—", fhr: "—",
-            fmov: "present", cx: "—", ctg: "",
-            status: item.latestAssessment?.status ?? bundle.status,
-            location: bundle.location,
-            reassessDue: bundle.reassessDue,
-            acknowledged: item.latestAssessment?.acknowledged ?? false,
-            handover: "",
-            outcome: "Awaiting clinical outcome",
-            outcomeNotes: "",
-            assessmentId: item.latestAssessment?.id,
-            managementChecklist: Array(MGMT[priority]?.length ?? 0).fill(false),
-            timeline: [],
-            // Carry full latestAssessment through so screens can access obstetricConditions etc.
-            latestAssessment: item.latestAssessment,
-          };
-        });
+        if (list.length === 0) return;
+        const mapped = list.map(mapQueueItem);
         setPatients(mapped);
+        lastPatientsFetch.current = Date.now();
         console.log(`[PATIENTS] Loaded ${mapped.length} patient(s) from API`);
       })
       .catch((err) => {
         console.warn("[PATIENTS] Could not load from API, using local seed data:", err);
       })
       .finally(() => {
-        if (active) setPatientsLoading(false);
+        patientsFetchInFlight.current = false;
+        setPatientsLoading(false);
       });
+  }
 
-    return () => { active = false; };
+  // Load patient queue from API whenever the user becomes authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    loadPatients(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
+
+  // Refresh-on-navigation: whenever the user lands on a data-backed screen
+  // (dashboard or triage queue) we re-fetch the latest queue. The staleness
+  // guard inside loadPatients prevents redundant calls when hopping quickly
+  // between screens, so this stays cheap while guaranteeing fresh data on entry.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (screen === "welcome" || screen === "patients") {
+      loadPatients();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, isAuthenticated]);
+
+  // Refresh-on-focus / visibility: when the user returns to the tab/window
+  // (e.g. after switching away, or waking the device) we force a refresh so the
+  // data is never stale after a period of inactivity. This mirrors the
+  // background-revalidation pattern used by SWR / React Query.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    function revalidate() {
+      if (document.visibilityState === "visible" &&
+          (screen === "welcome" || screen === "patients")) {
+        loadPatients(true);
+      }
+    }
+    window.addEventListener("focus", revalidate);
+    document.addEventListener("visibilitychange", revalidate);
+    return () => {
+      window.removeEventListener("focus", revalidate);
+      document.removeEventListener("visibilitychange", revalidate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, screen]);
+
+
 
   // Enhanced nav to accept optional filter
   const nav = (s: string, filter?: string | null) => {
@@ -470,7 +562,23 @@ export default function App() {
     nav("triage");
   }
 
+  // Resume an in-progress (draft) assessment: re-open the triage flow bound to
+  // the existing patient + assessment so the operator continues where they
+  // left off rather than starting a fresh assessment.
+  function resumeDraft(patient: any) {
+    const draftAssessmentId = patient.draftAssessmentId ?? patient.assessmentId;
+    console.log("[DRAFT] Resuming draft", { patientId: patient.id, draftAssessmentId });
+    startRetriage({
+      ...patient,
+      patientId: patient.patientId ?? patient.id,
+      // Bind the resumed flow to the existing in-progress assessment so
+      // TriageScreen.saveStep1 reuses it instead of creating a new one.
+      assessmentId: draftAssessmentId,
+    });
+  }
+
   function saveResultToPatients() {
+
     if (!result) return;
 
     const existingPatient = result.sourcePatientId
@@ -512,6 +620,10 @@ export default function App() {
         onOpenPatient={openPatient}
         currentUser={currentUser}
         liveAlertCount={liveAlertCount}
+        reminders={activeReminders}
+        overdueCount={overdueCount}
+        onDismissReminder={dismissReminder}
+        onDismissAllReminders={dismissAllReminders}
       />
     ),
 
@@ -543,9 +655,13 @@ export default function App() {
         onOpenPatient={openPatient}
         onStartNewTriage={startNewTriage}
         onOpenSearch={() => setSearchOpen(true)}
+        onResumeDraft={resumeDraft}
+        onRefreshPatients={() => loadPatients(true)}
         filter={patientsFilter}
+
       />
     ),
+
 
     "patient-detail": (
       <PatientDetailsScreen
@@ -586,10 +702,9 @@ export default function App() {
   if (isAuthBootstrapping) {
     return (
       <div
+        className="app-container"
         style={{
           fontFamily:'DM Sans',
-          width: "100%",
-          margin: "0 auto",
           minHeight: "100dvh",
           background: C.bg,
           display: "flex",
@@ -606,10 +721,9 @@ export default function App() {
 
   return (
     <div
+      className="app-container"
       style={{
         fontFamily:'DM Sans',
-        width: "100%",
-        margin: "0 auto",
         height: "100dvh",
         background: C.bg,
         position: "relative",
@@ -626,22 +740,36 @@ export default function App() {
 
       {/* SEARCH */}
       {showsBottomNav && screen !== "patients" && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, width: "100%", margin: "0 auto" }}>
-          <button
-            onClick={() => setSearchOpen(true)}
-            style={{
-              display: "flex",
-              gap: 8,
-              border: `1px solid ${C.border}`,
-              background: "rgba(255,255,255,.94)",
-              borderRadius: 999,
-              padding: "10px 16px",
-              fontWeight: 800,
-            }}
-          >
-            <IconSearch size={14} />
-            Search Patient
-          </button>
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 99,
+            display: "flex",
+            justifyContent: "center",
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          }}
+        >
+          <div className="app-container" style={{ display: "flex", justifyContent: "center" }}>
+            <button
+              onClick={() => setSearchOpen(true)}
+              style={{
+                display: "flex",
+                gap: 8,
+                border: `1px solid ${C.border}`,
+                background: "rgba(255,255,255,.94)",
+                borderRadius: 999,
+                padding: "10px 16px",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              <IconSearch size={14} />
+              Search Patient
+            </button>
+          </div>
         </div>
       )}
 
@@ -662,15 +790,14 @@ export default function App() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="fade-up"
+            className="fade-up app-container"
             style={{
-              width: "100%", 
-              margin: "0 auto",
               background: "#fff",
               borderRadius: "24px 24px 0 0",
               paddingBottom: "env(safe-area-inset-bottom, 16px)",
               boxShadow: "0 -8px 40px rgba(0,0,0,.18)",
               overflow: "hidden",
+              height: "auto",
             }}
           >
             {/* drag pill */}

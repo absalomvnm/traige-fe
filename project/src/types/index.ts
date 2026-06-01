@@ -32,6 +32,10 @@ export interface Patient {
   managementChecklist: boolean[];
   timeline: TimelineEvent[];
   inQueue?: boolean;
+  // Draft assessment support
+  isDraft?: boolean;
+  draftAssessmentId?: number | null;
+  completedSections?: string[];
   [key: string]: any;
 }
 

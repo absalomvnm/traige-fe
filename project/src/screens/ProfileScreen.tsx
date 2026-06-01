@@ -214,8 +214,6 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
 
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   
   const fullNameInputRef = useRef<HTMLInputElement | null>(null);
@@ -268,12 +266,10 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
     const phoneValidation = validateCellNumber(profile.phone);
     if (phoneValidation) {
       setPhoneError(phoneValidation);
-      setSaveError("Please enter a valid South African phone number.");
       return;
     }
 
     setSaving(true);
-    setSaveError(null);
     try {
       const token = localStorage.getItem("obsa.auth.token") || "";
       const updated = await authApi.updateProfile(profile, token);
@@ -289,18 +285,16 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
 
       onUpdateUser?.(updatedUser);
       setEditing(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
     } catch (err: any) {
-      setSaveError(err?.message ?? "Failed to save. Please try again.");
-      setTimeout(() => setSaveError(null), 4000);
+      console.error("Failed to save profile:", err);
+      setPhoneError(err?.message ?? "Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
   }
 
   const userId = (currentUser as any)?.id;
-  const { report, loading: reportLoading, error: reportError } = useProfileReport(userId);
+  const { report, loading: reportLoading } = useProfileReport(userId);
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, paddingBottom: 100 }}>
