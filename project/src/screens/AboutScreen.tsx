@@ -139,7 +139,7 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
   <Btn
     variant="teal"
     full
-    onClick={() => window.open("https://obsatriage.s3.eu-west-1.amazonaws.com/Integrated+Maternal+and+Perinatal+Care+Guideline+HIGHLIGHTED.pdf", "_blank")}
+    onClick={() => window.open("https://knowledgehub.health.gov.za/system/files/elibdownloads/2024-10/Integrated%20Maternal%20and%20Perinatal%20Care%20Guideline_23_10_2024_0.pdf", "_blank")}
     s={{ padding: "14px 0" }}
   >
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }}>
