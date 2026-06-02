@@ -1,5 +1,5 @@
 import { PatientCardSkeleton } from "../components/Skeletons";
-import { IconChevronRight, IconSearch } from "../components/icons";
+import { IconChevronRight } from "../components/icons";
 import { Btn, Hdr, StatusChip } from "../components/ui";
 import { C, pC } from "../constants/theme";
 import { priorityColor, resolveConditionName } from "../services/catalogService";
@@ -26,7 +26,6 @@ export function PatientsScreen({
   loading,
   onOpenPatient,
   onStartNewTriage,
-  onOpenSearch,
   onResumeDraft,
   onRefreshPatients,
   filter,
@@ -78,12 +77,6 @@ export function PatientsScreen({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 600 }}>
             {showSkeletons ? "Loading queue…" : `${patients.length} patients triaged today`}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Btn variant="ghost" onClick={onOpenSearch} s={{ padding: "6px 10px", fontSize: 12, borderRadius: 999 }}>
-              <IconSearch size={12} style={{ marginRight: 4 }} /> Search Files
-            </Btn>
-            <StatusChip label="Sort by priority" tone={C.green} />
           </div>
         </div>
 

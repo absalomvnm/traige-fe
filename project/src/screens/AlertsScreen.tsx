@@ -228,6 +228,8 @@ function AlertCard({
 export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, currentUser }: AlertsScreenProps) {
   const [apiAlerts, setApiAlerts] = useState<AssessmentAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshDone, setRefreshDone] = useState(false);
   const [ackingIds, setAckingIds] = useState<Set<number>>(new Set());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const userId = currentUser?.id ? Number(currentUser.id) : 0;
@@ -237,17 +239,27 @@ export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, 
     console.log("[ALERTS] currentUser shape:", currentUser, "→ formatted creds:", formatCreds(currentUser));
   }, [currentUser]);
 
-  function loadAlerts() {
+  function loadAlerts(manual = false) {
+    if (manual) setRefreshing(true);
     patientService
       .getAlerts()
-      .then((list) => setApiAlerts(list))
+      .then((list) => {
+        setApiAlerts(list);
+        if (manual) {
+          setRefreshDone(true);
+          setTimeout(() => setRefreshDone(false), 2000);
+        }
+      })
       .catch((err) => console.warn("[ALERTS] Failed to load:", err))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        if (manual) setRefreshing(false);
+      });
   }
 
   useEffect(() => {
     loadAlerts();
-    intervalRef.current = setInterval(loadAlerts, 60_000);
+    intervalRef.current = setInterval(() => loadAlerts(), 60_000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
@@ -392,9 +404,68 @@ export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, 
           </div>
         )}
 
-        <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: C.textMuted }}>
-          Refreshes every 60s ·{" "}
-          <span style={{ cursor: "pointer", textDecoration: "underline", color: C.green }} onClick={loadAlerts}>Refresh now</span>
+        {/* Refresh footer */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 24 }}>
+          <span style={{ fontSize: 11, color: C.textLight, fontWeight: 500 }}>Auto-refreshes every 60s</span>
+          <span style={{ width: 3, height: 3, borderRadius: "50%", background: C.border, display: "inline-block" }} />
+          <button
+            className="btn-press"
+            disabled={refreshing}
+            onClick={() => loadAlerts(true)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 14px",
+              borderRadius: 999,
+              border: refreshDone ? `1.5px solid ${C.green}` : `1.5px solid ${C.border}`,
+              background: refreshDone
+                ? `${C.green}12`
+                : refreshing
+                ? C.bgDeep
+                : C.bg,
+              color: refreshDone ? C.green : refreshing ? C.textMuted : C.green,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: refreshing ? "default" : "pointer",
+              transition: "all .25s ease",
+              boxShadow: refreshDone ? `0 0 0 3px ${C.green}20` : "none",
+            }}
+          >
+            {refreshing ? (
+              <>
+                <span
+                  style={{
+                    width: 12,
+                    height: 12,
+                    border: `2px solid ${C.border}`,
+                    borderTopColor: C.green,
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    animation: "ctgSpin .7s linear infinite",
+                    flexShrink: 0,
+                  }}
+                />
+                Refreshing…
+              </>
+            ) : refreshDone ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.green} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Updated!
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <polyline points="1 20 1 14 7 14" />
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                </svg>
+                Refresh now
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

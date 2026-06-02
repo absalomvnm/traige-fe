@@ -215,6 +215,7 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
             <input
               ref={searchInputRef}
               type="text"
+              className="dashboard-search-input"
               placeholder="Search patients by name or file number…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

@@ -13,6 +13,74 @@ export interface ReviewReminder {
   dismissed: boolean;
 }
 
+// ─── localStorage persistence ────────────────────────────────────────────────
+// Each entry is stored as  { id, dismissedAt (ISO) }
+// We prune entries older than DISMISS_TTL_MS so the store doesn't grow forever.
+const STORAGE_KEY = "obsa.dismissed_reminders";
+const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+interface StoredDismissal {
+  id: string;
+  dismissedAt: string; // ISO date string
+}
+
+function loadDismissedFromStorage(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    const entries: StoredDismissal[] = JSON.parse(raw);
+    const cutoff = Date.now() - DISMISS_TTL_MS;
+    const valid = entries.filter(
+      (e) => new Date(e.dismissedAt).getTime() > cutoff
+    );
+    // Prune stale entries back to storage
+    if (valid.length !== entries.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
+    }
+    return new Set(valid.map((e) => e.id));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissedToStorage(ids: Set<string>): void {
+  try {
+    // Merge with what's already stored so we don't lose entries from other tabs
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const existing: StoredDismissal[] = raw ? JSON.parse(raw) : [];
+    const existingMap = new Map(existing.map((e) => [e.id, e]));
+    const now = new Date().toISOString();
+    ids.forEach((id) => {
+      if (!existingMap.has(id)) {
+        existingMap.set(id, { id, dismissedAt: now });
+      }
+    });
+    const cutoff = Date.now() - DISMISS_TTL_MS;
+    const pruned = Array.from(existingMap.values()).filter(
+      (e) => new Date(e.dismissedAt).getTime() > cutoff
+    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
+  } catch {
+    // localStorage unavailable — silently ignore
+  }
+}
+
+function removeDismissedFromStorage(id: string): void {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const entries: StoredDismissal[] = JSON.parse(raw);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(entries.filter((e) => e.id !== id))
+    );
+  } catch {
+    // ignore
+  }
+}
+
+// ─── Parsing helpers ──────────────────────────────────────────────────────────
+
 /** Parse a reassessDue string into milliseconds offset from assessment time */
 function parseDueMs(reassessDue: string): number {
   if (!reassessDue) return 60 * 60 * 1000; // default 1 hr
@@ -61,7 +129,6 @@ function remindersEqual(a: ReviewReminder[], b: ReviewReminder[]): boolean {
 
 /** Format time until due */
 export function formatUntilDue(ms: number): string {
-
   if (ms <= 0) return "Due now";
   const totalMin = Math.ceil(ms / 60_000);
   if (totalMin < 60) return `in ${totalMin} min`;
@@ -86,8 +153,10 @@ export function useReviewReminders(
   const { onDue, pollInterval = 30_000, warningMinutes = 5 } = options;
 
   const [reminders, setReminders] = useState<ReviewReminder[]>([]);
-  const firedRef = useRef<Set<string>>(new Set()); // track which reminders have fired
-  const dismissedRef = useRef<Set<string>>(new Set()); // track dismissed
+  const firedRef = useRef<Set<string>>(new Set()); // track which reminders have fired onDue
+
+  // Initialise dismissedRef from localStorage so dismissals survive page reloads
+  const dismissedRef = useRef<Set<string>>(loadDismissedFromStorage());
 
   // Keep the latest props/callbacks in refs so the polling effect can read them
   // without being part of its dependency array. This prevents an infinite
@@ -188,6 +257,8 @@ export function useReviewReminders(
 
   const dismiss = useCallback((reminderId: string) => {
     dismissedRef.current.add(reminderId);
+    // Persist to localStorage so the dismissal survives page reloads
+    saveDismissedToStorage(new Set([reminderId]));
     setReminders((prev) =>
       prev.map((r) => (r.id === reminderId ? { ...r, dismissed: true } : r))
     );
@@ -195,13 +266,27 @@ export function useReviewReminders(
 
   const dismissAll = useCallback(() => {
     setReminders((prev) => {
-      prev.forEach((r) => dismissedRef.current.add(r.id));
+      const ids = new Set(prev.map((r) => r.id));
+      ids.forEach((id) => dismissedRef.current.add(id));
+      // Persist all dismissed IDs to localStorage
+      saveDismissedToStorage(ids);
       return prev.map((r) => ({ ...r, dismissed: true }));
     });
+  }, []);
+
+  // Allow un-dismissing a reminder (e.g. after a new assessment is created for
+  // the same patient the old dismissal should be cleared automatically — but we
+  // also expose this so callers can explicitly restore a reminder if needed).
+  const undismiss = useCallback((reminderId: string) => {
+    dismissedRef.current.delete(reminderId);
+    removeDismissedFromStorage(reminderId);
+    setReminders((prev) =>
+      prev.map((r) => (r.id === reminderId ? { ...r, dismissed: false } : r))
+    );
   }, []);
 
   const activeReminders = reminders.filter((r) => !r.dismissed);
   const overdueCount = activeReminders.filter((r) => r.isOverdue).length;
 
-  return { reminders, activeReminders, overdueCount, dismiss, dismissAll };
+  return { reminders, activeReminders, overdueCount, dismiss, dismissAll, undismiss };
 }

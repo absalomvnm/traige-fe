@@ -731,7 +731,13 @@ export default function App() {
       }}
     >
       {/* CONTENT */}
-      <div style={{ height: "100%", overflowY: "auto" }}>
+      <div
+        style={{
+          height: "100%",
+          overflowY: "auto",
+          paddingBottom: showsBottomNav ? "calc(72px + env(safe-area-inset-bottom, 0px))" : 0,
+        }}
+      >
         {screens[screen] || (isAuthenticated ? screens.welcome : screens.splash)}
       </div>
 

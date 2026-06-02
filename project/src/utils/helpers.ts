@@ -33,36 +33,53 @@ export function getCompletedSectionCount(source: any): number {
 
 // Single source of truth for "is this assessment still a draft?".
 //
-// A record is a draft only while triage is genuinely incomplete — i.e. the
-// triage engine has not yet produced a clinical priority. Two decisive rules
-// override every heuristic below:
+// An assessment is a draft when the operator started the triage journey but
+// has not yet pressed "Generate Triage Result". The backend creates the
+// assessment row at Step 1 with status="in_progress" and may immediately
+// assign a default priority (e.g. P2) via its rule engine — but that default
+// priority does NOT mean the triage is complete. We therefore cannot use
+// `priority > 0` alone to decide "not a draft".
 //
-//   1. If triage has produced a real priority (`finalPriorityId`/`rulePriorityId`/
-//      `aiPriorityId` set, or `priority`/`p` > 0), the record is NEVER a draft —
-//      even if its status string is still "in_progress" (patient under care).
-//      The backend is authoritative here; the FE must not re-derive "draft" from
-//      the status text once a priority exists. This was the root cause of P2
-//      patients being rendered as DRAFT across the queue / summary screens.
+// Decision logic (in priority order):
 //
-//   2. If ALL sections are complete, the record is never a draft either.
-//
-// Only when neither holds do we fall back to the backend's `isDraft` flag.
+//   1. Explicit backend `isDraft: true` flag → always a draft.
+//   2. status="in_progress" AND no finalPriorityId (rule engine has not
+//      produced a definitive result yet) AND fewer than all sections complete
+//      → treat as draft. This covers the case where the backend assigns a
+//      default priority at assessment creation but the operator hasn't
+//      finished the full 5-step journey.
+//   3. All sections complete → never a draft.
+//   4. finalPriorityId / rulePriorityId / aiPriorityId set → the rule engine
+//      ran a full evaluation, so it is a real scored assessment, not a draft.
 export function isAssessmentDraft(source: any): boolean {
   if (!source) return false;
   const la = source.latestAssessment ?? source;
   const completed = getCompletedSectionCount(source);
 
-  // (1) A scored assessment is never a draft, whatever its status text says.
-  if (hasTriagePriority(source)) return false;
+  // (1) Backend explicitly marks it as a draft — trust that signal first.
+  if (la?.isDraft === true || source?.isDraft === true) return true;
 
-  // (2) Fully completed → never a draft.
+  // (2) Fully completed sections → never a draft.
   if (completed >= TOTAL_TRIAGE_SECTIONS) return false;
 
-  // Otherwise defer to the backend's explicit draft signal. We intentionally
-  // no longer infer "draft" from a raw "in_progress" status string, because the
-  // backend now keeps assessments "in_progress" while they carry a real
-  // priority — treating that as a draft would re-introduce the overlap bug.
-  return la?.isDraft === true || source?.isDraft === true;
+  // (3) finalPriorityId / rulePriorityId / aiPriorityId means the rule engine
+  //     ran a full evaluation → real scored assessment, not a draft.
+  if (
+    la?.finalPriorityId != null ||
+    la?.rulePriorityId != null ||
+    la?.aiPriorityId != null
+  ) return false;
+
+  // (4) status="in_progress" with no definitive engine result → draft.
+  //     The backend may have set a default `priority` value at creation time,
+  //     but without finalPriorityId that is just a placeholder, not a real
+  //     triage outcome. We treat this as an incomplete draft.
+  const status = String(la?.status ?? source?.status ?? "").toLowerCase();
+  if (/^in[_\s-]?progress$/i.test(status) && completed < TOTAL_TRIAGE_SECTIONS) {
+    return true;
+  }
+
+  return false;
 }
 
 // True once the triage engine has produced a priority for this record. Mirrors

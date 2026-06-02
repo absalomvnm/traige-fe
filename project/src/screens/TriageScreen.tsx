@@ -1253,12 +1253,12 @@ const IMPRESSION_MAP: Record<string, string> = {
           }}
         >
           <div
-            className="app-container"
             style={{
               background: C.bg,
               borderRadius: 18,
               padding: "26px 28px",
-              height: "auto",
+              width: "100%",
+              maxWidth: 360,
               textAlign: "center",
               boxShadow: "0 12px 40px rgba(0,0,0,.3)",
               border: `1px solid ${C.border}`,

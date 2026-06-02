@@ -94,18 +94,76 @@ style.textContent = `
   .vital-critical-pulse { animation: vitalPulse 1.6s ease-in-out infinite; }
   @keyframes ctgSpin { to { transform: rotate(360deg); } }
   .ctg-spin { animation: ctgSpin .9s linear infinite; }
-  .card-hover { transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s; cursor:pointer; }
-  .card-hover:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,0,0,.12) !important; }
-  .btn-press  { transition: transform .08s, filter .1s; }
-  .btn-press:active { transform: scale(.95); filter: brightness(.92); }
-  .btn-press:hover  { filter: brightness(1.06); }
+  /* ── Card hover / press ─────────────────────────────────────────────── */
+  .card-hover {
+    transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card-hover:hover  { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,.11) !important; }
+  .card-hover:active { transform: scale(.97) translateY(0) !important; box-shadow: 0 2px 8px rgba(0,0,0,.10) !important; filter: brightness(.96); transition: transform .07s, filter .07s, box-shadow .07s; }
+
+  /* ── Button press ───────────────────────────────────────────────────── */
+  .btn-press {
+    transition: transform .1s cubic-bezier(.22,1,.36,1), filter .1s, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-press:hover  { filter: brightness(1.07); }
+  .btn-press:active { transform: scale(.93); filter: brightness(.88); box-shadow: 0 1px 4px rgba(0,0,0,.18) !important; transition: transform .06s, filter .06s; }
+
+  /* ── Ripple on btn-press ────────────────────────────────────────────── */
+  .btn-press::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,255,255,.35) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity .4s ease;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .btn-press:active::after { opacity: 1; transition: opacity .05s ease; }
+
+  /* ── All bare buttons get a subtle press feel ───────────────────────── */
+  button:not(.btn-press):not(.card-hover):not(.nav-tab) {
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity .12s, transform .1s;
+  }
+  button:not(.btn-press):not(.card-hover):not(.nav-tab):active {
+    opacity: .72;
+    transform: scale(.95);
+    transition: opacity .05s, transform .05s;
+  }
+
+  /* ── Nav tab ────────────────────────────────────────────────────────── */
+  .nav-tab {
+    transition: color .15s, background .15s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-tab:hover  { background: rgba(42,125,79,.08); }
+  .nav-tab:active { transform: scale(.88); background: rgba(42,125,79,.14); transition: transform .06s; }
+
+  /* ── Inputs ─────────────────────────────────────────────────────────── */
   input:focus, select:focus, textarea:focus { outline:none !important; border-color:#2A7D4F !important; box-shadow:0 0 0 3px rgba(42,125,79,.15) !important; }
+
+  /* ── Checkbox ───────────────────────────────────────────────────────── */
   .check-box { width:20px; height:20px; border-radius:6px; border:2px solid #CBD5E1; appearance:none; cursor:pointer; transition:all .15s; flex-shrink:0; background:#fff; }
   .check-box:checked { background:linear-gradient(135deg,#2A7D4F,#3da868); border-color:#2A7D4F; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.5 11.5L3 8l1.5-1.5 2 2 5-5L13 5z'/%3E%3C/svg%3E"); }
-  .nav-tab { transition: color .15s, background .15s; }
-  .nav-tab:hover { background: rgba(42,125,79,.08); }
+  .check-box:active { transform: scale(.88); }
+
+  /* ── Misc ───────────────────────────────────────────────────────────── */
   .glass { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   select option { background: #1e293b; color: #f1f5f9; }
+
+  /* ── Stat / quick-action cards ──────────────────────────────────────── */
+  @keyframes tap-flash {
+    0%   { opacity: 1; }
+    40%  { opacity: .72; }
+    100% { opacity: 1; }
+  }
+  .card-hover:active { animation: tap-flash .22s ease; }
 `;
 document.head.appendChild(style);
 
