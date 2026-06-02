@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { MultiConditionSelect } from "../components/MultiConditionSelect";
 import { IconArrowLeft, IconArrowRight, IconBolt, IconSiren, IconStethoscope, IconWarning } from "../components/icons";
 
+import { DuplicatePatientBanner, type DuplicateMatch } from "../components/DuplicatePatientBanner";
+import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
 import { Btn, Card, ComboSel, Hdr, Inp, SectionLabel, Sel, Txt } from "../components/ui";
 import { STEPS } from "../constants/options";
 import { C, pBg, pC } from "../constants/theme";
 import { patientService } from "../services/Patientservice";
 import { buildAssessmentForm, formatCellNumber, parseSAID, validateCellNumber } from "../utils/helpers";
 import { calcPriority, getRealtimeVitalAlerts } from "../utils/triage";
-import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
-import { DuplicatePatientBanner, type DuplicateMatch } from "../components/DuplicatePatientBanner";
 
 // Signs & symptoms condition keys — used in both step-2 persist and go()-fallback
 const SS_KEYS = [
@@ -1071,7 +1071,7 @@ const IMPRESSION_MAP: Record<string, string> = {
                   Add clinical notes, trends, or additional context about vital signs
                 </div>
               </div>
-              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.85, color: C.textMid, marginTop: 6, border: `1px solid ${C.border}` }}>
+              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.85, color: C.textMid, marginTop: 6, marginBottom: 30, border: `1px solid ${C.border}` }}>
                 <div style={{ fontWeight: 800, marginBottom: 6, color: C.text, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>SATS 2012 Reference</div>
                 <div><span style={{ color: C.p1, fontWeight: 700 }}>P1 ·</span> BP ≥160/110 · HR &gt;140 or &lt;50 · RR &gt;60 · SpO₂ &lt;85%</div>
                 <div><span style={{ color: C.p2, fontWeight: 700 }}>P2 ·</span> BP 150/100 · HR &gt;120 · RR &gt;30 · SpO₂ &lt;90%</div>
