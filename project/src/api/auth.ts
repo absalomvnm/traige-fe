@@ -73,6 +73,26 @@ export interface UpdateProfileResponse {
   message?: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+
 export const authApi = {
   login(payload: LoginRequest) {
     return apiRequest<LoginResponse>("/api/auth/login", {
@@ -101,6 +121,20 @@ export const authApi = {
       method: "PUT",
       body: payload,
       token,
+    });
+  },
+
+  forgotPassword(payload: ForgotPasswordRequest) {
+    return apiRequest<ForgotPasswordResponse>("/api/auth/forgot-password", {
+      method: "POST",
+      body: payload,
+    });
+  },
+
+  resetPassword(payload: ResetPasswordRequest) {
+    return apiRequest<ResetPasswordResponse>("/api/auth/reset-password", {
+      method: "POST",
+      body: payload,
     });
   },
 };

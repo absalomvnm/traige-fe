@@ -1,5 +1,7 @@
 export { SplashScreen } from "./SplashScreen";
 export { RegisterScreen } from "./RegisterScreen";
+export { ForgotPasswordScreen } from "./ForgotPasswordScreen";
+export { ResetPasswordScreen } from "./ResetPasswordScreen";
 export { WelcomeScreen } from "./WelcomeScreen";
 export { TriageScreen } from "./TriageScreen";
 export { ResultScreen } from "./ResultScreen";
