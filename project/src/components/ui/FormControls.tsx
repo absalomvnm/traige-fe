@@ -22,6 +22,7 @@ export function Inp({ label, hint, alert, compact, ...p }: any) {
       )}
       <input
         {...p}
+        title={(p as any).title ?? alert?.text}
         style={{
           width: "100%",
           padding: "0.75rem 0.9375rem", // 12px 15px

@@ -35,6 +35,7 @@ export function ResultScreen({ onNav, onBack, result, onSaveResult, onEditAssess
   const hr = result.hr ?? la?.vitals?.heart_rate ?? "";
   const rr = result.rr ?? la?.vitals?.respiration_rate ?? "";
   const spo = result.spo ?? la?.vitals?.spo2 ?? "";
+  const bloodGlucose = result.bloodGlucose ?? la?.vitals?.blood_glucose ?? la?.vitals?.bloodGlucose ?? "";
   const fhr = result.fhr ?? la?.foetalMonitoring?.foetal_heart_rate ?? "";
   const cx = result.cx ?? la?.vaginalExam?.cervical_dilation ?? "";
 
@@ -124,7 +125,7 @@ export function ResultScreen({ onNav, onBack, result, onSaveResult, onEditAssess
         <div className="fade-up" style={{ background: C.bg, borderRadius: 18, padding: "18px 16px", marginBottom: 14, border: `1px solid ${C.border}`, animationDelay: ".05s" }}>
           <SectionLabel mb={12}>Recorded Values</SectionLabel>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-            {([["BP", bpS && bpD ? `${bpS}/${bpD}` : "—", "mmHg"], ["HR", hr || "—", "bpm"], ["RR", rr || "—", "/min"], ["SpO₂", spo || "—", "%"], ["FHR", fhr || "—", "bpm"], ["Cervix", cx && cx !== "0" ? cx : "—", "cm"]] as const).map(([k, v, u]) => (
+            {([ ["BP", bpS && bpD ? `${bpS}/${bpD}` : "—", "mmHg"], ["HR", hr || "—", "bpm"], ["RR", rr || "—", "/min"], ["SpO₂", spo || "—", "%"], ["Blood Glucose", bloodGlucose || "—", "mmol/L"], ["FHR", fhr || "—", "bpm"], ["Cervix", cx && cx !== "0" ? cx : "—", "cm"]] as const).map(([k, v, u]) => (
               <div key={k} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{k}</div>
                 <div style={{ fontSize: 17, fontWeight: 900, color: C.text, marginTop: 2 }}>{v}</div>

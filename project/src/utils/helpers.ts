@@ -347,6 +347,12 @@ export function buildAssessmentForm(initialData: any = {}): AssessmentForm {
       safeInitialData.spo && safeInitialData.spo !== "—"
         ? String(safeInitialData.spo)
         : "",
+    bloodGlucose:
+      safeInitialData.bloodGlucose != null && safeInitialData.bloodGlucose !== "—"
+        ? String(safeInitialData.bloodGlucose)
+        : safeInitialData.blood_glucose != null && safeInitialData.blood_glucose !== "—"
+          ? String(safeInitialData.blood_glucose)
+          : "",
     temp:
       safeInitialData.temp && safeInitialData.temp !== "—"
         ? String(safeInitialData.temp)

@@ -32,7 +32,7 @@ export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, 
   const [showProcedures, setShowProcedures] = useState(false);
   const [procedures, setProcedures] = useState<ManagementProcedure[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(false);
-  const [urinalysis, setUrinalysis] = useState<{ protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } | null>(null);
+  const [urinalysis, setUrinalysis] = useState<{ protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } | null>(null);
   const [urinalysisLoading, setUrinalysisLoading] = useState(true);
   const [checklistLoading, setChecklistLoading] = useState(true);
   const [ctgScansLoading, setCtgScansLoading] = useState(true);
@@ -499,6 +499,7 @@ export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, 
               hr: patient.hr === "—" ? "" : patient.hr,
               rr: patient.rr === "—" ? "" : patient.rr,
               spo: patient.spo === "—" ? "" : patient.spo,
+              bloodGlucose: patient.bloodGlucose === "—" ? "" : patient.bloodGlucose,
               fhr: patient.fhr === "—" ? "" : patient.fhr,
               cx: patient.cx === "—" ? "" : patient.cx,
             });
@@ -510,6 +511,7 @@ export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, 
               { k: "HR", v: hr, u: "bpm", alert: alerts.hr },
               { k: "RR", v: rr, u: "/min", alert: alerts.rr },
               { k: "SpO₂", v: spo, u: "%", alert: alerts.spo },
+              { k: "Blood Glucose", v: patient.bloodGlucose ?? patient.blood_glucose ?? "—", u: "mmol/L", alert: alerts.bloodGlucose },
               { k: "FHR", v: fhr, u: "bpm", alert: alerts.fhr },
               { k: "Cervix", v: cx, u: "cm", alert: alerts.cx },
             ];
@@ -569,13 +571,24 @@ export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, 
           <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".055s" }}>
             <SectionLabel mb={12}>Urinalysis</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {(["Protein", "Leukocytes", "Blood", "Nitrite", "Glucose", "SG", "Bilirubin", "ph"] as const).map(key => {
-                const val = urinalysis[key.toLowerCase() as keyof typeof urinalysis];
-                console.log(`[URINALYSIS] ${key}:`, val);
+              {([
+                ["Protein", "protein"],
+                ["Leukocytes", "leukocytes"],
+                ['BLOOD("URINE HAEMATURIA")', "urine_haematuria"],
+                ["Nitrite", "nitrite"],
+                ["Glucose", "glucose"],
+                ["SG", "sg"],
+                ["Bilirubin", "bilirubin"],
+                ["ph", "ph"],
+              ] as const).map(([label, key]) => {
+                const val = key === "urine_haematuria"
+                  ? (urinalysis.urine_haematuria ?? urinalysis.haematuria ?? urinalysis.blood)
+                  : urinalysis[key as keyof typeof urinalysis];
+                console.log(`[URINALYSIS] ${label}:`, val);
                 const absent = !val || val === "none";
                 return (
-                  <div key={key} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${absent ? C.border : "#D8D365"}` }}>
-                    <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{key}</div>
+                  <div key={label} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${absent ? C.border : "#D8D365"}` }}>
+                    <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{label}</div>
                     <div style={{ fontSize: 17, fontWeight: 900, color: absent ? C.textLight : "#5B5A0D", marginTop: 2 }}>{absent ? "None" : val}</div>
                   </div>
                 );

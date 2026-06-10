@@ -469,6 +469,20 @@ export default function App() {
         ]));
 
       
+        const bloodGlucoseValue = vitals.blood_glucose != null
+          ? Number(vitals.blood_glucose)
+          : vitals.bloodGlucose != null
+            ? Number(vitals.bloodGlucose)
+            : NaN;
+        const glucosePriority = Number.isNaN(bloodGlucoseValue)
+          ? 4
+          : bloodGlucoseValue < 3.5
+            ? 1
+            : bloodGlucoseValue > 7.5
+              ? 2
+              : 4;
+        const effectivePriority = Math.min(Number(a.priority ?? patient.p ?? 4), glucosePriority);
+
         const enriched = {
           ...patient,
           assessmentId: a.id ?? patient.assessmentId,
@@ -477,8 +491,8 @@ export default function App() {
           // a stale sign/symptom label (e.g. "Proteinuria 2+") instead of the
           // resolved obstetric condition (e.g. "Gestational Hypertension").
           cond: resolveConditionName({ latestAssessment: a }) || patient.cond || "General review",
-          p: a.priority ?? patient.p,
-          status: a.status ?? patient.status,
+          p: effectivePriority,
+          status: effectivePriority <= 2 ? "Awaiting urgent review" : (a.status ?? patient.status),
           location: a.location ?? patient.location,
           outcome: a.outcome ?? patient.outcome,
           outcomeNotes: a.outcomeNotes ?? patient.outcomeNotes,
@@ -489,6 +503,7 @@ export default function App() {
           hr: vitals.heart_rate != null ? String(vitals.heart_rate) : patient.hr,
           rr: vitals.respiration_rate != null ? String(vitals.respiration_rate) : patient.rr,
           spo: vitals.spo2 != null ? String(vitals.spo2) : patient.spo,
+          bloodGlucose: vitals.blood_glucose != null ? String(vitals.blood_glucose) : patient.bloodGlucose,
           temp: vitals.temp != null
             ? String(vitals.temp)
             : (vitals.temperature_celsius != null ? String(vitals.temperature_celsius) : patient.temp),

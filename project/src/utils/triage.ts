@@ -9,6 +9,7 @@ export function calcPriority(f: any): number {
   const rr = parseInt(f.rr || 0),
     spo = parseInt(f.spo || 100),
     fhr = parseInt(f.fhr || 140);
+  const bloodGlucose = parseFloat(f.bloodGlucose ?? f.blood_glucose ?? "");
   const cx = parseInt(f.cx || 0),
     ga = parseInt(f.gestAge || 0),
     cd =
@@ -28,6 +29,7 @@ export function calcPriority(f: any): number {
     (rr > 0 && rr < 10) ||
     spo < 85 ||
     (fhr > 0 && fhr < 100) ||
+    (!Number.isNaN(bloodGlucose) && bloodGlucose < 3.5) ||
     cx > 8 ||
     (ga > 0 && (ga > 42 || ga < 24))
   )
@@ -40,6 +42,7 @@ export function calcPriority(f: any): number {
     rr > 30 ||
     spo < 90 ||
     (fhr > 0 && (fhr < 110 || fhr > 170)) ||
+    (!Number.isNaN(bloodGlucose) && bloodGlucose > 7.5) ||
     cx === 8 ||
     (ga >= 41 && ga <= 42)
   )
@@ -131,6 +134,15 @@ export function getRealtimeVitalAlerts(
       );
   }
 
+  const bloodGlucose = toNum(f.bloodGlucose ?? f.blood_glucose);
+  if (!Number.isNaN(bloodGlucose)) {
+    if (bloodGlucose < 3.5) {
+      setAlert("bloodGlucose", 1, "Hypoglycaemia (low blood sugar) - urgent review");
+    } else if (bloodGlucose > 7.5) {
+      setAlert("bloodGlucose", 2, "Hyperglycaemia (high blood sugar) - urgent review");
+    }
+  }
+
   const cx = toNum(f.cx);
   if (!Number.isNaN(cx)) {
     if (cx > 8)
@@ -171,6 +183,12 @@ export function normalizeDecisionInput(source: any) {
     hr: source?.hr ?? "",
     rr: source?.rr ?? "",
     spo: source?.spo ?? "",
+    bloodGlucose:
+      source?.bloodGlucose ??
+      source?.blood_glucose ??
+      source?.latestAssessment?.vitals?.bloodGlucose ??
+      source?.latestAssessment?.vitals?.blood_glucose ??
+      "",
     fhr: source?.fhr ?? "",
     cx: source?.cx && source?.cx !== "—" ? source.cx : "0",
     cond: source?.condKey || source?.cond || "",
@@ -227,6 +245,7 @@ export function buildDecisionSummary(
     ["HR", input.hr ? `${input.hr} bpm` : "Not captured"],
     ["RR", input.rr ? `${input.rr} /min` : "Not captured"],
     ["SpO₂", input.spo ? `${input.spo}%` : "Not captured"],
+    ["Blood Glucose", input.bloodGlucose ? `${input.bloodGlucose} mmol/L` : "Not captured"],
     ["FHR", input.fhr ? `${input.fhr} bpm` : "Not captured"],
     [
       "Cervix",
