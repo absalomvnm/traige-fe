@@ -259,20 +259,25 @@ export function SplashScreen({ onNav, onAuthSuccess }: SplashScreenProps) {
         >
           {isLoading ? "Authenticating..." : "Log In"}
         </Btn>
-        <Btn
-          full
-          variant="outline"
-          onClick={() => onNav("register")}
-          s={{
-            padding: "14px 0",
-            fontSize: 15,
-            borderRadius: 14,
-            borderColor: "rgba(255,255,255,.25)",
-            color: "rgba(255,255,255,.85)",
-          }}
-        >
-          Register
-        </Btn>
+        <div style={{ textAlign: "center", marginTop: 12 }}>
+          <span
+            style={{ color: "rgba(255,255,255,.65)", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
+            onClick={() => onNav("forgot-password")}
+          >
+            Forgot Password?
+          </span>
+        </div>
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <span style={{ color: "rgba(255,255,255,.55)", fontSize: 13 }}>
+            New staff member?{" "}
+          </span>
+          <span
+            style={{ color: "rgba(255,255,255,.85)", fontSize: 13, cursor: "pointer", textDecoration: "underline", fontWeight: 600 }}
+            onClick={() => onNav("register")}
+          >
+            Register
+          </span>
+        </div>
       </div>
 
       <div

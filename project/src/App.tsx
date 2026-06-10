@@ -28,9 +28,11 @@ import { ReportsScreen } from "./screens/ReportsScreen";
 import {
   AboutScreen,
   AlertsScreen,
+  ForgotPasswordScreen,
   PatientDetailsScreen,
   PatientsScreen,
   RegisterScreen,
+  ResetPasswordScreen,
   ResultScreen,
   SplashScreen,
   TriageScreen,
@@ -44,6 +46,7 @@ export default function App() {
   const [patientsFilter, setPatientsFilter] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   const [patients, setPatients] = useState<any[]>(INITIAL_PATIENTS);
   const [patientsLoading, setPatientsLoading] = useState(true);
@@ -61,6 +64,19 @@ export default function App() {
   const isAuthenticated = Boolean(authToken);
 
   const { toasts, toast } = useToast();
+
+  // ── Handle password reset link from email ─────────────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      console.log("[RESET] Password reset token found in URL");
+      setResetToken(token);
+      setScreen("reset-password");
+      // Clean up the URL to remove the token parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // ── Review reminders ──────────────────────────────────────────────────────
   const { activeReminders, overdueCount, dismiss: dismissReminder, dismissAll: dismissAllReminders } =
@@ -611,6 +627,8 @@ export default function App() {
   const screens: Record<string, any> = {
     splash: <SplashScreen onNav={nav} onAuthSuccess={handleAuthSuccess} />,
     register: <RegisterScreen onNav={nav} toast={toast} />,
+    "forgot-password": <ForgotPasswordScreen onNav={nav} toast={toast} />,
+    "reset-password": <ResetPasswordScreen onNav={nav} resetToken={resetToken || ""} toast={toast} />,
 
     welcome: (
       <WelcomeScreen
