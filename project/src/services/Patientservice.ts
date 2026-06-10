@@ -241,6 +241,15 @@ export interface AssessmentAlert {
   resolvedAt?: string | null;
 }
 
+export interface ReminderDismissal {
+  id: number;
+  reminderKey: string;
+  assessmentId?: number | null;
+  patientId?: number | null;
+  dismissedByUserId?: number | null;
+  dismissedAt?: string | null;
+}
+
 export interface CreateAlertPayload {
   assessmentId: number;
   type: string;
@@ -896,6 +905,25 @@ export const patientService = {
   /** DELETE /assessment-alerts/:id */
   deleteAlert: (id: number): Promise<void> =>
     request<void>("DELETE", `/assessment-alerts/${id}`),
+
+  // ── Reassessment Reminders ──────────────────────────────────────────────
+
+  /** GET /assessment-reminders/dismissals */
+  getDismissedReviewReminders: (): Promise<ReminderDismissal[]> =>
+    request<ReminderDismissal[]>("GET", "/assessment-reminders/dismissals"),
+
+  /** POST /assessment-reminders/dismiss */
+  dismissReviewReminder: (payload: {
+    reminderKey: string;
+    assessmentId?: number | null;
+    patientId?: number | null;
+    dismissedByUserId?: number | null;
+  }): Promise<ReminderDismissal> =>
+    request<ReminderDismissal>("POST", "/assessment-reminders/dismiss", payload),
+
+  /** POST /assessment-reminders/dismiss-batch */
+  dismissReviewReminders: (reminderKeys: string[]): Promise<ReminderDismissal[]> =>
+    request<ReminderDismissal[]>("POST", "/assessment-reminders/dismiss-batch", reminderKeys),
 
   // ── Assessment Conditions ─────────────────────────────────────────────────
 

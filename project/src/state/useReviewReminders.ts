@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fullName } from "../utils/helpers";
+import { patientService } from "../services/Patientservice";
 
 export interface ReviewReminder {
   id: string;           // unique key: `${patientId}_${assessmentId}`
@@ -13,71 +14,7 @@ export interface ReviewReminder {
   dismissed: boolean;
 }
 
-// ─── localStorage persistence ────────────────────────────────────────────────
-// Each entry is stored as  { id, dismissedAt (ISO) }
-// We prune entries older than DISMISS_TTL_MS so the store doesn't grow forever.
-const STORAGE_KEY = "obsa.dismissed_reminders";
-const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-interface StoredDismissal {
-  id: string;
-  dismissedAt: string; // ISO date string
-}
-
-function loadDismissedFromStorage(): Set<string> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return new Set();
-    const entries: StoredDismissal[] = JSON.parse(raw);
-    const cutoff = Date.now() - DISMISS_TTL_MS;
-    const valid = entries.filter(
-      (e) => new Date(e.dismissedAt).getTime() > cutoff
-    );
-    // Prune stale entries back to storage
-    if (valid.length !== entries.length) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
-    }
-    return new Set(valid.map((e) => e.id));
-  } catch {
-    return new Set();
-  }
-}
-
-function saveDismissedToStorage(ids: Set<string>): void {
-  try {
-    // Merge with what's already stored so we don't lose entries from other tabs
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const existing: StoredDismissal[] = raw ? JSON.parse(raw) : [];
-    const existingMap = new Map(existing.map((e) => [e.id, e]));
-    const now = new Date().toISOString();
-    ids.forEach((id) => {
-      if (!existingMap.has(id)) {
-        existingMap.set(id, { id, dismissedAt: now });
-      }
-    });
-    const cutoff = Date.now() - DISMISS_TTL_MS;
-    const pruned = Array.from(existingMap.values()).filter(
-      (e) => new Date(e.dismissedAt).getTime() > cutoff
-    );
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pruned));
-  } catch {
-    // localStorage unavailable — silently ignore
-  }
-}
-
-function removeDismissedFromStorage(id: string): void {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const entries: StoredDismissal[] = JSON.parse(raw);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(entries.filter((e) => e.id !== id))
-    );
-  } catch {
-    // ignore
-  }
-}
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // ─── Parsing helpers ──────────────────────────────────────────────────────────
 
@@ -150,13 +87,13 @@ export function useReviewReminders(
   patients: any[],
   options: UseReviewRemindersOptions = {}
 ) {
-  const { onDue, pollInterval = 30_000, warningMinutes = 5 } = options;
+  const { onDue, pollInterval = 30_000 } = options;
 
   const [reminders, setReminders] = useState<ReviewReminder[]>([]);
+  const [dismissalRevision, setDismissalRevision] = useState(0);
   const firedRef = useRef<Set<string>>(new Set()); // track which reminders have fired onDue
-
-  // Initialise dismissedRef from localStorage so dismissals survive page reloads
-  const dismissedRef = useRef<Set<string>>(loadDismissedFromStorage());
+  const dismissedRef = useRef<Set<string>>(new Set());
+  const dismissalsLoadedRef = useRef(false);
 
   // Keep the latest props/callbacks in refs so the polling effect can read them
   // without being part of its dependency array. This prevents an infinite
@@ -166,16 +103,49 @@ export function useReviewReminders(
   patientsRef.current = patients;
   const onDueRef = useRef(onDue);
   onDueRef.current = onDue;
-  const warningMinutesRef = useRef(warningMinutes);
-  warningMinutesRef.current = warningMinutes;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    patientService
+      .getDismissedReviewReminders()
+      .then((records) => {
+        if (cancelled) return;
+        dismissedRef.current = new Set(records.map((record) => record.reminderKey));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        dismissedRef.current = new Set();
+      })
+      .finally(() => {
+        if (cancelled) return;
+        dismissalsLoadedRef.current = true;
+        setDismissalRevision((value) => value + 1);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function buildReminderKey(patientId: string | number, assessmentId: string | number, windowIndex: number): string {
+    return `${patientId}_${assessmentId}_${windowIndex}`;
+  }
+
+  function getReminderWindowIndex(now: number, dueAtMs: number): number {
+    const overdueMs = Math.max(0, now - dueAtMs);
+    return Math.floor(overdueMs / DAY_MS);
+  }
 
   const computeReminders = useCallback(() => {
+    if (!dismissalsLoadedRef.current) {
+      return;
+    }
+
     const patients = patientsRef.current;
     const onDue = onDueRef.current;
-    const warningMinutes = warningMinutesRef.current;
 
     const now = Date.now();
-    const warningMs = warningMinutes * 60_000;
 
     const next: ReviewReminder[] = [];
 
@@ -186,6 +156,7 @@ export function useReviewReminders(
       const assessedAt = p.latestAssessment?.assessedAt;
       const reassessDue = p.reassessDue || p.latestAssessment?.reassessDue;
       if (!assessedAt || !reassessDue || reassessDue === "Immediate") continue;
+      if (p.latestAssessment?.acknowledged) continue;
 
       const assessedMs = new Date(assessedAt).getTime();
       if (isNaN(assessedMs)) continue;
@@ -193,14 +164,13 @@ export function useReviewReminders(
       const dueMs = parseDueMs(reassessDue);
       const dueAt = new Date(assessedMs + dueMs);
       const dueAtMs = dueAt.getTime();
-      const diffMs = now - dueAtMs; // positive = overdue, negative = not yet due
-      const isOverdue = diffMs >= 0;
-      const isWarning = !isOverdue && (dueAtMs - now) <= warningMs;
+      const isOverdue = now >= dueAtMs;
+      if (!isOverdue) continue;
 
-      // Only include if overdue OR within warning window
-      if (!isOverdue && !isWarning) continue;
+      const reminderWindowIndex = getReminderWindowIndex(now, dueAtMs);
 
-      const key = `${p.id}_${p.assessmentId ?? p.latestAssessment?.id ?? "x"}`;
+      const assessmentId = p.assessmentId ?? p.latestAssessment?.id ?? "x";
+      const key = buildReminderKey(p.id, assessmentId, reminderWindowIndex);
       const dismissed = dismissedRef.current.has(key);
 
       next.push({
@@ -210,7 +180,7 @@ export function useReviewReminders(
         priority: p.p ?? p.latestAssessment?.priority ?? 4,
         reassessDue,
         dueAt,
-        overdueBy: Math.max(0, diffMs),
+        overdueBy: Math.max(0, now - dueAtMs),
         isOverdue,
         dismissed,
       });
@@ -225,7 +195,7 @@ export function useReviewReminders(
           priority: p.p ?? p.latestAssessment?.priority ?? 4,
           reassessDue,
           dueAt,
-          overdueBy: Math.max(0, diffMs),
+          overdueBy: Math.max(0, now - dueAtMs),
           isOverdue: true,
           dismissed: false,
         });
@@ -252,41 +222,32 @@ export function useReviewReminders(
     computeReminders();
     const id = setInterval(computeReminders, pollInterval);
     return () => clearInterval(id);
-  }, [computeReminders, pollInterval, patients]);
+  }, [computeReminders, pollInterval, patients, dismissalRevision]);
 
 
   const dismiss = useCallback((reminderId: string) => {
     dismissedRef.current.add(reminderId);
-    // Persist to localStorage so the dismissal survives page reloads
-    saveDismissedToStorage(new Set([reminderId]));
+    setDismissalRevision((value) => value + 1);
+    void patientService.dismissReviewReminder({ reminderKey: reminderId }).catch((err) => {
+      console.warn("[REMINDERS] Failed to persist dismissal:", err);
+    });
     setReminders((prev) =>
       prev.map((r) => (r.id === reminderId ? { ...r, dismissed: true } : r))
     );
   }, []);
 
   const dismissAll = useCallback(() => {
-    setReminders((prev) => {
-      const ids = new Set(prev.map((r) => r.id));
-      ids.forEach((id) => dismissedRef.current.add(id));
-      // Persist all dismissed IDs to localStorage
-      saveDismissedToStorage(ids);
-      return prev.map((r) => ({ ...r, dismissed: true }));
+    const ids = new Set(reminders.map((r) => r.id));
+    ids.forEach((id) => dismissedRef.current.add(id));
+    setDismissalRevision((value) => value + 1);
+    void patientService.dismissReviewReminders(Array.from(ids)).catch((err) => {
+      console.warn("[REMINDERS] Failed to persist batch dismissal:", err);
     });
-  }, []);
-
-  // Allow un-dismissing a reminder (e.g. after a new assessment is created for
-  // the same patient the old dismissal should be cleared automatically — but we
-  // also expose this so callers can explicitly restore a reminder if needed).
-  const undismiss = useCallback((reminderId: string) => {
-    dismissedRef.current.delete(reminderId);
-    removeDismissedFromStorage(reminderId);
-    setReminders((prev) =>
-      prev.map((r) => (r.id === reminderId ? { ...r, dismissed: false } : r))
-    );
-  }, []);
+    setReminders((prev) => prev.map((r) => ({ ...r, dismissed: true })));
+  }, [reminders]);
 
   const activeReminders = reminders.filter((r) => !r.dismissed);
   const overdueCount = activeReminders.filter((r) => r.isOverdue).length;
 
-  return { reminders, activeReminders, overdueCount, dismiss, dismissAll, undismiss };
+  return { reminders, activeReminders, overdueCount, dismiss, dismissAll };
 }
