@@ -7,7 +7,7 @@ import { SignatureDisplay, SignaturePad } from "../components/SignaturePad";
 import { ChecklistSkeleton, VitalTileSkeleton } from "../components/Skeletons";
 import { Btn, Card, Inp, SectionLabel, Sel, StatusChip, Tag, Txt } from "../components/ui";
 import { MGMT } from "../constants/management";
-import { LOCATION_OPTIONS, OUTCOME_OPTIONS, STATUS_OPTIONS } from "../constants/options";
+import { LOCATION_OPTIONS, STATUS_OPTIONS } from "../constants/options";
 import { C, pBg, pC, pGrd, pLbl, pTm } from "../constants/theme";
 import { resolveConditionName, resolveConditionSource } from "../services/catalogService";
 import type { ManagementProcedure } from "../services/Patientservice";
@@ -259,6 +259,21 @@ export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, 
   function updateField(key: string, value: any) {
     onUpdatePatient({ ...patient, [key]: value });
   }
+
+    function saveOutcomeProgress() {
+      const notes = (patient.outcomeNotes || "").trim();
+
+      appendTimeline("Outcome updated", notes || "Outcome updated", C.p4);
+
+      if (!patient.assessmentId) return;
+
+      fireApi(
+        patientService.updateDisposition(patient.assessmentId, {
+          outcomeNotes: notes || undefined,
+        }),
+        "progress note",
+      );
+    }
 
   function updateChecklist(index: number) {
     const apiItem = checklistApiItems[index];
@@ -1033,50 +1048,9 @@ export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, 
 
         <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".14s" }}>
           <SectionLabel mb={12}>Outcome Tracking</SectionLabel>
-          <Sel label="Current Outcome" opts={OUTCOME_OPTIONS} value={patient.outcome} onChange={(e: any) => {
-            const val = e.target.value;
-            if (val === "Discharged home") {
-              onUpdatePatient({ ...patient, outcome: val, status: "Discharged", location: "Discharged" });
-            } else {
-              updateField("outcome", val);
-            }
-          }} />
           <Txt label="Progress Notes" rows={3} value={patient.outcomeNotes || ""} onChange={(e: any) => updateField("outcomeNotes", e.target.value)} placeholder="Document disposition, delivery, escalation, or discharge summary" />
-          <Btn variant="ghost" full onClick={() => {
-            appendTimeline("Outcome updated", patient.outcome || "Outcome updated", C.p4);
-            if (patient.assessmentId) fireApi(patientService.updateDisposition(patient.assessmentId, { outcome: patient.outcome, outcomeNotes: patient.outcomeNotes, status: patient.status, location: patient.location }), "outcome disposition");
-          }} s={{ padding: "11px 0" }}>Save Progress</Btn>
+          <Btn variant="ghost" full onClick={saveOutcomeProgress} s={{ padding: "11px 0" }}>Save Progress</Btn>
 
-          {patient.outcome === "Discharged home" && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
-              {patient.dischargeSig ? (
-                <SignatureDisplay data={patient.dischargeSig} accentColor="#059669" label="Discharge Authorization Recorded" />
-              ) : (
-                <SignaturePad
-                  title="Discharge Authorization"
-                  description="Doctor sign-off required before patient can be discharged home. Confirms clinical criteria for safe discharge have been met."
-                  accentColor="#059669"
-                  accentGradient="linear-gradient(135deg, #059669, #047857)"
-                  prefillName={doctorPrefillName}
-                  prefillHpcsa={doctorPrefillHpcsa}
-                  readOnlyCreds
-                    onSign={(data) => {
-                      const signedAt = new Date().toISOString();
-                      const dischargeReason = (patient.outcomeNotes || "").trim() || "Stable for discharge home";
-                      if (!patient.assessmentId) return Promise.reject(new Error("Missing assessment id"));
-                      return fireApi(patientService.submitDischargeAuthorization(patient.assessmentId, {
-                        doctorName: data.doctorName,
-                        hpcsaNumber: data.hpcsaNumber,
-                        signature: data.signatureDataUrl,
-                        dischargeReason,
-                      }), "discharge authorization").then(() => {
-                        appendTimeline("Discharge authorized", `${data.doctorName} (${data.hpcsaNumber}) authorized discharge`, "#059669", { dischargeSig: { ...data, signedAt } });
-                      });
-                    }}
-                />
-              )}
-            </div>
-          )}
         </Card>
 
         <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".15s" }}>

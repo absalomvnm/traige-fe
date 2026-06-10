@@ -39,6 +39,21 @@ import {
   WelcomeScreen,
 } from "./screens";
 
+function getResetTokenFromLocation(): string | null {
+  const queryToken = new URLSearchParams(window.location.search).get("token")?.trim();
+  if (queryToken) return queryToken;
+
+  const pathname = window.location.pathname.replace(/\/+$/, "");
+  const match = pathname.match(/^\/reset-forgot\/token=([^/]+)$/i);
+  if (!match) return null;
+
+  try {
+    return decodeURIComponent(match[1]).trim();
+  } catch {
+    return match[1].trim();
+  }
+}
+
 export default function App() {
   const AUTH_TOKEN_KEY = "obsa.auth.token";
 
@@ -68,14 +83,13 @@ export default function App() {
 
   // ── Handle password reset link from email ─────────────────────────────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    const token = getResetTokenFromLocation();
     if (token) {
       console.log("[RESET] Password reset token found in URL");
       setResetToken(token);
       setScreen("reset-password");
       // Clean up the URL to remove the token parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, "/");
     }
   }, []);
 
