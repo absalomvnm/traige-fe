@@ -23,13 +23,14 @@ const SS_KEYS = [
 
 interface TriageScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   onResult: (assessment: any) => void;
   initialData?: any;
   currentUser?: any;
   toast?: { success: (m: string) => void; error: (m: string) => void; info: (m: string) => void; warning: (m: string) => void };
 }
 
-export function TriageScreen({ onNav, onResult, initialData, currentUser, toast }: TriageScreenProps) {
+export function TriageScreen({ onNav, onBack, onResult, initialData, currentUser, toast }: TriageScreenProps) {
   const [step, setStep] = useState(1);
   const [f, sf] = useState(() => buildAssessmentForm(initialData));
   const s = (k: string) => (e: any) => sf((p: any) => ({ ...p, [k]: e.target.value }));
@@ -694,7 +695,7 @@ const IMPRESSION_MAP: Record<string, string> = {
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, display: "flex", flexDirection: "column" }}>
-      <Hdr title={`Step ${step} of ${STEPS.length} · ${STEPS[step - 1]}`} onBack={() => (step > 1 ? setStep((s) => s - 1) : onNav("welcome"))} />
+      <Hdr title={`Step ${step} of ${STEPS.length} · ${STEPS[step - 1]}`} onBack={() => (step > 1 ? setStep((s) => s - 1) : (onBack ? onBack() : onNav("welcome")))} />
       <div style={{ background: C.borderMid, height: 4, flexShrink: 0 }}>
         <div style={{ background: C.gradGreen, height: "100%", width: `${pct}%`, transition: "width .4s cubic-bezier(.22,1,.36,1)", borderRadius: "0 4px 4px 0", boxShadow: "0 0 8px rgba(30,123,71,.4)" }} />
       </div>

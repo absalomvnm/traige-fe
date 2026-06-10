@@ -12,12 +12,13 @@ import { patientService, type ChecklistItem } from "../services/Patientservice";
 
 interface ResultScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   result: any;
   onSaveResult: () => void;
   onEditAssessment: () => void;
 }
 
-export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: ResultScreenProps) {
+export function ResultScreen({ onNav, onBack, result, onSaveResult, onEditAssessment }: ResultScreenProps) {
   if (!result) return null;
   // Debug log for priorities
   console.log("[ResultScreen] priority:", result.priority, "latestAssessment.priority:", result.latestAssessment?.priority);
@@ -88,7 +89,7 @@ export function ResultScreen({ onNav, result, onSaveResult, onEditAssessment }: 
       <div style={{ background: pGrd(legacyPriority), padding: "24px 20px 60px", position: "relative", overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,.2)" }}>
         <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
-          <button onClick={() => onNav("welcome")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
+          <button onClick={onBack ?? (() => onNav("welcome"))} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
           <span style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Triage Result</span>
         </div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Priority Assessment</div>

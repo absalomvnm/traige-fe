@@ -150,6 +150,19 @@ export function timeStamp(): string {
   return new Date().toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
 }
 
+export function isSameLocalDay(value: string | number | Date | null | undefined, reference = new Date()): boolean {
+  if (value == null) return false;
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  return (
+    date.getFullYear() === reference.getFullYear() &&
+    date.getMonth() === reference.getMonth() &&
+    date.getDate() === reference.getDate()
+  );
+}
+
 /**
  * Format a raw string into a South African cell number: +27 XX XXX XXXX
  * Works progressively as the user types.

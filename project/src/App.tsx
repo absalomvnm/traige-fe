@@ -59,6 +59,7 @@ export default function App() {
   const [liveAlertCount, setLiveAlertCount] = useState<number | null>(null);
 
   const isAuthenticated = Boolean(authToken);
+  const screenHistoryRef = useRef<{ screen: string; filter: string | null }[]>([]);
 
   const { toasts, toast } = useToast();
 
@@ -143,6 +144,7 @@ export default function App() {
     }
 
     catalogService.load().catch(() => {});
+    screenHistoryRef.current = [];
     setScreen("welcome");
   }
 
@@ -169,6 +171,7 @@ export default function App() {
         setCurrentUser(user);
         // Load catalogs after session restore.
         catalogService.load().catch(() => {});
+        screenHistoryRef.current = [];
         setScreen("welcome");
         console.log("[AUTH] Session restored successfully", { user: user?.email, role: user?.role });
       } catch (error) {
@@ -355,15 +358,45 @@ export default function App() {
       setMoreOpen(false);
       return;
     }
+
+    const nextFilter = s === "patients" ? (filter ?? null) : null;
+    if (screen === s && (s !== "patients" || (patientsFilter ?? null) === nextFilter)) {
+      setMoreOpen(false);
+      return;
+    }
+
     console.log("[NAV] Navigating to", { screen: s, filter });
+    screenHistoryRef.current.push({ screen, filter: patientsFilter ?? null });
     setScreen(s);
     if (s === "patients") {
-      setPatientsFilter(filter ?? null);
+      setPatientsFilter(nextFilter);
     } else {
       setPatientsFilter(null);
     }
     setMoreOpen(false);
   };
+
+  function goBack() {
+    const previous = screenHistoryRef.current.pop();
+
+    if (previous) {
+      if (!isAuthenticated && protectedScreens.has(previous.screen)) {
+        setPatientsFilter(null);
+        setMoreOpen(false);
+        setScreen("splash");
+        return;
+      }
+
+      setScreen(previous.screen);
+      setPatientsFilter(previous.screen === "patients" ? previous.filter : null);
+      setMoreOpen(false);
+      return;
+    }
+
+    setPatientsFilter(null);
+    setMoreOpen(false);
+    setScreen(isAuthenticated ? "welcome" : "splash");
+  }
 
   // ─────────────────────────────
   // LOGOUT (NEW)
@@ -372,6 +405,7 @@ export default function App() {
     console.log("🚪 [AUTH] User logged out", { user: currentUser?.email });
     localStorage.removeItem(AUTH_TOKEN_KEY);
     catalogService.reset();
+    screenHistoryRef.current = [];
 
     setAuthToken(null);
     setCurrentUser(null);
@@ -610,7 +644,7 @@ export default function App() {
   // ─────────────────────────────
   const screens: Record<string, any> = {
     splash: <SplashScreen onNav={nav} onAuthSuccess={handleAuthSuccess} />,
-    register: <RegisterScreen onNav={nav} toast={toast} />,
+    register: <RegisterScreen onNav={nav} onBack={goBack} toast={toast} />,
 
     welcome: (
       <WelcomeScreen
@@ -631,6 +665,7 @@ export default function App() {
       <TriageScreen
         key={triageVersion}
         onNav={nav}
+        onBack={goBack}
         onResult={(assessment: any) => setResult(assessment)}
         initialData={triageDraft}
         currentUser={currentUser}
@@ -641,6 +676,7 @@ export default function App() {
     result: (
       <ResultScreen
         onNav={nav}
+        onBack={goBack}
         result={result}
         onSaveResult={saveResultToPatients}
         onEditAssessment={() => startRetriage(result)}
@@ -650,6 +686,7 @@ export default function App() {
     patients: (
       <PatientsScreen
         onNav={nav}
+        onBack={goBack}
         patients={patients}
         loading={patientsLoading}
         onOpenPatient={openPatient}
@@ -667,6 +704,7 @@ export default function App() {
       <PatientDetailsScreen
         key={selectedPatient?.id || "empty"}
         onNav={nav}
+        onBack={goBack}
         patient={selectedPatient}
         onUpdatePatient={updatePatient}
         onRetriage={startRetriage}
@@ -678,6 +716,7 @@ export default function App() {
     alerts: (
       <AlertsScreen
         onNav={nav}
+        onBack={goBack}
         patients={patients}
         onUpdatePatient={updatePatient}
         onOpenPatient={openPatient}
@@ -685,9 +724,9 @@ export default function App() {
       />
     ),
 
-    reports: <ReportsScreen onNav={nav} patients={patients} />,
-    about: <AboutScreen onNav={nav} />,
-    profile: <ProfileScreen onNav={nav} currentUser={currentUser} onLogout={logout} onUpdateUser={setCurrentUser} />,
+    reports: <ReportsScreen onNav={nav} onBack={goBack} patients={patients} />,
+    about: <AboutScreen onNav={nav} onBack={goBack} />,
+    profile: <ProfileScreen onNav={nav} onBack={goBack} currentUser={currentUser} onLogout={logout} onUpdateUser={setCurrentUser} />,
   };
 
   const showsBottomNav = [

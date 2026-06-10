@@ -9,6 +9,7 @@ import type { AssessmentAlert } from "../services/Patientservice";
 
 interface AlertsScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   patients: any[];
   onUpdatePatient: (patient: any) => void;
   onOpenPatient: (patient: any) => void;
@@ -225,7 +226,7 @@ function AlertCard({
   );
 }
 
-export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, currentUser }: AlertsScreenProps) {
+export function AlertsScreen({ onNav, onBack, patients, onUpdatePatient, onOpenPatient, currentUser }: AlertsScreenProps) {
   const [apiAlerts, setApiAlerts] = useState<AssessmentAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -339,7 +340,7 @@ export function AlertsScreen({ onNav, patients, onUpdatePatient, onOpenPatient, 
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, paddingBottom: 88 }}>
       <Hdr
         title={<><IconSiren size={18} color="white" style={{ marginRight: 6 }} /> Alerts</>}
-        onBack={() => onNav("welcome")}
+        onBack={onBack ?? (() => onNav("welcome"))}
         gradient={active.length > 0 ? C.gradAlert : "linear-gradient(135deg,#059669,#047857)"}
       />
       <div style={{ padding: "14px 14px 28px" }}>
