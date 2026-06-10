@@ -15,6 +15,7 @@ import { formatCellNumber, validateCellNumber } from "../utils/helpers";
 
 interface ProfileScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   currentUser?: AuthUser | null;
   onLogout?: () => void;
   onUpdateUser?: (user: AuthUser) => void;
@@ -200,7 +201,7 @@ const IconPencil = ({ size = 16, color = "currentColor" }) => (
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────
 
-export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: ProfileScreenProps) {
+export function ProfileScreen({ onNav, onBack, currentUser, onLogout, onUpdateUser }: ProfileScreenProps) {
   const theme = useMemo(() => roleTheme(currentUser?.role), [currentUser?.role]);
 
   const [profile, setProfile] = useState(() => ({
@@ -300,7 +301,7 @@ export function ProfileScreen({ onNav, currentUser, onLogout, onUpdateUser }: Pr
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, paddingBottom: 100 }}>
       <Hdr 
         title="Account" 
-        onBack={() => onNav("welcome")} 
+        onBack={onBack ?? (() => onNav("welcome"))} 
         gradient={theme.accent === C.green ? C.gradGreen : theme.accent === C.teal ? C.gradTeal : theme.accent === C.purple ? C.gradPurple : C.gradGreen} 
       />
 

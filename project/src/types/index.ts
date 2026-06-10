@@ -16,6 +16,7 @@ export interface Patient {
   hr: number | string;
   rr: number | string;
   spo: number | string;
+  bloodGlucose?: number | string;
   temp: string;
   fhr: number | string;
   fmov: string;

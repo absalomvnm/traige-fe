@@ -6,7 +6,7 @@ import { C, pC } from "../constants/theme";
 import { priorityColor, resolveConditionName } from "../services/catalogService";
 import { patientService, type PatientListItem } from "../services/Patientservice";
 import type { ReviewReminder } from "../state/useReviewReminders";
-import { fullName } from "../utils/helpers";
+import { fullName, isSameLocalDay } from "../utils/helpers";
 import { acceptDisclaimer, DisclaimerModal, hasAcceptedDisclaimer } from "./DisclaimerModal";
 
 
@@ -29,7 +29,12 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
     day: "numeric",
     month: "long",
   });
-  const triagedToday = patients.length;
+  const hasAssessmentDates = patients.some((patient: any) => patient.latestAssessment?.assessedAt || patient.assessedAt);
+  const triagedTodayPatients = hasAssessmentDates
+    ? patients.filter((patient: any) => isSameLocalDay(patient.latestAssessment?.assessedAt ?? patient.assessedAt))
+    : patients;
+  const triagedToday = triagedTodayPatients.length;
+  const totalTriaged = patients.length;
   const p1Count = liveAlertCount ?? patients.filter((patient: any) => (patient.latestAssessment?.finalPriorityId || patient.p) === 1).length;
   const p2Count = patients.filter((patient: any) => (patient.latestAssessment?.finalPriorityId || patient.p) === 2).length;
   const pendingCount = patients.filter((patient: any) => /Pending|Awaiting/.test(patient.status)).length;
@@ -67,7 +72,7 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
     { l: "P1 Emergencies", v: String(p1Count), gradient: C.p1grd, icon: <IconSiren size={22} color="white" />, action: () => onNav("alerts") },
     { l: "P2 Very Urgent", v: String(p2Count), gradient: C.p2grd, icon: <IconBolt size={22} color="white" />, action: () => onNav("patients", "p2") },
     { l: "Pending Review", v: String(pendingCount), gradient: "linear-gradient(135deg,#6366F1,#4338CA)", icon: <IconHourglass size={22} color="white" />, action: () => onNav("patients", "pending") },
-    { l: "Triaged Today", v: String(triagedToday), gradient: "linear-gradient(135deg,#1E7B47,#0D6B3B)", icon: <IconHospital size={22} color="white" />, action: () => onNav("patients", null) },
+    { l: "Triage Queue", v: String(totalTriaged), gradient: "linear-gradient(135deg,#1E7B47,#0D6B3B)", icon: <IconHospital size={22} color="white" />, action: () => onNav("patients", null) },
   ];
 
 
@@ -215,6 +220,7 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
             <input
               ref={searchInputRef}
               type="text"
+              className="dashboard-search-input"
               placeholder="Search patients by name or file number…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -347,7 +353,7 @@ export function WelcomeScreen({ onNav, patients, onStartNewTriage, onOpenPatient
         <SectionLabel mb={10}>Quick Actions</SectionLabel>
         {[
           { icon: <IconStethoscope size={22} color="white" />, l: "New Triage Assessment", sub: "Capture vitals and generate priority", action: onStartNewTriage, gradient: C.gradGreen, glow: "rgba(30,123,71,.2)" },
-          { icon: <IconClipboardList size={22} color="white" />, l: "Triage Queue", sub: `${triagedToday} patients triaged today`, action: () => onNav("patients"), gradient: C.gradTeal, glow: "rgba(13,148,136,.18)" },
+          { icon: <IconClipboardList size={22} color="white" />, l: "Triage Queue", sub: `${totalTriaged} patients total${hasAssessmentDates ? ` · ${triagedToday} today` : ""}`, action: () => onNav("patients"), gradient: C.gradTeal, glow: "rgba(13,148,136,.18)" },
           { icon: <IconSiren size={22} color="white" />, l: "Active Alerts", sub: `${p1Count} P1 emergencies require attention`, action: () => onNav("alerts"), gradient: C.p1grd, glow: "rgba(220,38,38,.18)" },
           { icon: <IconInfo size={22} color="white" />, l: "Reports", sub: "View And Download Reports", action: () => onNav("reports"), gradient: C.gradPurple, glow: "rgba(124,58,237,.18)" },
         ].map((x, i) => (

@@ -27,6 +27,7 @@ export function DisclaimerModal({ onAccept }: DisclaimerModalProps) {
           display: "flex",
           flexDirection: "column",
           border: "0.5px solid rgba(0,0,0,.1)",
+          margin: "0 16px",
         }}
       >
         {/* Scrollable content */}

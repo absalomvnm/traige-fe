@@ -6,9 +6,10 @@ import { IconShare } from "../components/icons";
 
 interface AboutScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
 }
 
-export function AboutScreen({ onNav }: AboutScreenProps) {
+export function AboutScreen({ onNav, onBack }: AboutScreenProps) {
   const [shareFeedback, setShareFeedback] = useState("");
 
   function flashShareFeedback(message: string) {
@@ -56,7 +57,7 @@ export function AboutScreen({ onNav }: AboutScreenProps) {
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, paddingBottom: 80 }}>
-      <Hdr title="About ObSAtriage" onBack={() => onNav("welcome")} gradient={C.gradTeal} />
+      <Hdr title="About ObSAtriage" onBack={onBack ?? (() => onNav("welcome"))} gradient={C.gradTeal} />
       <div style={{ padding: "14px 14px 28px" }}>
         <Card className="fade-up" s={{ marginBottom: 12, textAlign: "center", padding: "28px 16px" }}>
           <div style={{ margin: "0 auto 10px" }}>

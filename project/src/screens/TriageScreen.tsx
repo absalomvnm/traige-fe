@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { MultiConditionSelect } from "../components/MultiConditionSelect";
 import { IconArrowLeft, IconArrowRight, IconBolt, IconSiren, IconStethoscope, IconWarning } from "../components/icons";
 
+import { DuplicatePatientBanner, type DuplicateMatch } from "../components/DuplicatePatientBanner";
+import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
 import { Btn, Card, ComboSel, Hdr, Inp, SectionLabel, Sel, Txt } from "../components/ui";
 import { STEPS } from "../constants/options";
 import { C, pBg, pC } from "../constants/theme";
 import { patientService } from "../services/Patientservice";
 import { buildAssessmentForm, formatCellNumber, parseSAID, validateCellNumber } from "../utils/helpers";
 import { calcPriority, getRealtimeVitalAlerts } from "../utils/triage";
-import { MultiRiskFactorSelect } from "../components/MultiRiskFactorSelect";
-import { DuplicatePatientBanner, type DuplicateMatch } from "../components/DuplicatePatientBanner";
 
 // Signs & symptoms condition keys — used in both step-2 persist and go()-fallback
 const SS_KEYS = [
@@ -23,13 +23,14 @@ const SS_KEYS = [
 
 interface TriageScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   onResult: (assessment: any) => void;
   initialData?: any;
   currentUser?: any;
   toast?: { success: (m: string) => void; error: (m: string) => void; info: (m: string) => void; warning: (m: string) => void };
 }
 
-export function TriageScreen({ onNav, onResult, initialData, currentUser, toast }: TriageScreenProps) {
+export function TriageScreen({ onNav, onBack, onResult, initialData, currentUser, toast }: TriageScreenProps) {
   const [step, setStep] = useState(1);
   const [f, sf] = useState(() => buildAssessmentForm(initialData));
   const s = (k: string) => (e: any) => sf((p: any) => ({ ...p, [k]: e.target.value }));
@@ -64,7 +65,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
           ...p,
           Protein: fromApi(u.protein),
           Leukocytes: fromApi(u.leukocytes),
-          Blood: fromApi(u.blood),
+          Blood: fromApi(u.urine_haematuria ?? u.haematuria ?? u.blood),
           Nitrite: fromApi(u.nitrite),
           Glucose: fromApi(u.glucose),
           SG: fromApi(u.sg),
@@ -288,6 +289,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
       heart_rate: f.hr !== "" && f.hr !== undefined ? Number(f.hr) : undefined,
       respiration_rate: f.rr !== "" && f.rr !== undefined ? Number(f.rr) : undefined,
       spo2: f.spo !== "" && f.spo !== undefined ? Number(f.spo) : undefined,
+      blood_glucose: f.bloodGlucose !== "" && f.bloodGlucose !== undefined ? Number(f.bloodGlucose) : undefined,
       temp: f.temp !== "" && f.temp !== undefined ? Number(f.temp) : undefined,
       pregnant: true,
       notes: f.vitalSignsNotes || undefined,
@@ -305,7 +307,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
     const urinePayload = {
       protein: toUrineVal(f.Protein),
       leukocytes: toUrineVal(f.Leukocytes),
-      blood: toUrineVal(f.Blood),
+      urine_haematuria: toUrineVal(f.Blood),
       nitrite: toUrineVal(f.Nitrite),
       glucose: toUrineVal(f.Glucose),
       sg: f.SG ? String(f.SG) : undefined,
@@ -473,6 +475,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
         heart_rate: f.hr !== "" && f.hr !== undefined ? Number(f.hr) : undefined,
         respiration_rate: f.rr !== "" && f.rr !== undefined ? Number(f.rr) : undefined,
         spo2: f.spo !== "" && f.spo !== undefined ? Number(f.spo) : undefined,
+        blood_glucose: f.bloodGlucose !== "" && f.bloodGlucose !== undefined ? Number(f.bloodGlucose) : undefined,
         temp: f.temp !== "" && f.temp !== undefined ? Number(f.temp) : undefined,
         pregnant: true,
         notes: f.vitalSignsNotes || undefined,
@@ -508,6 +511,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
             heart_rate: f.hr ? Number(f.hr) : undefined,
             respiration_rate: f.rr ? Number(f.rr) : undefined,
             spo2: f.spo ? Number(f.spo) : undefined,
+            blood_glucose: f.bloodGlucose ? Number(f.bloodGlucose) : undefined,
             temp: f.temp ? Number(f.temp) : undefined,
             pregnant: true,
           },
@@ -517,6 +521,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
           finalPriority = evalResp.priority;
           console.log("[TRIAGE] Server priority:", finalPriority, "| triggered:", evalResp.triggeredRules?.length ?? 0, "rule(s)");
         }
+        finalPriority = Math.min(finalPriority, localPriority);
       } catch (err) {
         console.warn("[TRIAGE] Evaluate failed — using local calcPriority:", localPriority, err);
       }
@@ -547,6 +552,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
             heart_rate: f.hr ? Number(f.hr) : undefined,
             respiration_rate: f.rr ? Number(f.rr) : undefined,
             spo2: f.spo ? Number(f.spo) : undefined,
+            blood_glucose: f.bloodGlucose ? Number(f.bloodGlucose) : undefined,
             temp: f.temp ? Number(f.temp) : undefined,
             pregnant: true,
             notes: f.vitalSignsNotes || undefined,
@@ -609,10 +615,16 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
       }
       onResult({
         ...f,
-        priority: latestAssessment.priority,
+        priority: Math.min(Number(latestAssessment.priority ?? finalPriority), finalPriority),
         assessmentId,
         sourcePatientId: initialData?.id,
-        latestAssessment
+        latestAssessment: {
+          ...latestAssessment,
+          priority: Math.min(Number(latestAssessment.priority ?? finalPriority), finalPriority),
+          finalPriorityId: latestAssessment.finalPriorityId != null
+            ? Math.min(Number(latestAssessment.finalPriorityId), finalPriority)
+            : Math.min(Number(latestAssessment.priority ?? finalPriority), finalPriority),
+        }
       });
     } catch (err) {
       console.error("[TRIAGE] Failed to fetch latest assessment, falling back to local result", err);
@@ -631,6 +643,7 @@ export function TriageScreen({ onNav, onResult, initialData, currentUser, toast 
             heart_rate: f.hr ? Number(f.hr) : undefined,
             respiration_rate: f.rr ? Number(f.rr) : undefined,
             spo2: f.spo ? Number(f.spo) : undefined,
+            blood_glucose: f.bloodGlucose ? Number(f.bloodGlucose) : undefined,
             temp: f.temp ? Number(f.temp) : undefined,
             pregnant: true,
             notes: f.vitalSignsNotes || undefined,
@@ -694,7 +707,7 @@ const IMPRESSION_MAP: Record<string, string> = {
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, display: "flex", flexDirection: "column" }}>
-      <Hdr title={`Step ${step} of ${STEPS.length} · ${STEPS[step - 1]}`} onBack={() => (step > 1 ? setStep((s) => s - 1) : onNav("welcome"))} />
+      <Hdr title={`Step ${step} of ${STEPS.length} · ${STEPS[step - 1]}`} onBack={() => (step > 1 ? setStep((s) => s - 1) : (onBack ? onBack() : onNav("welcome")))} />
       <div style={{ background: C.borderMid, height: 4, flexShrink: 0 }}>
         <div style={{ background: C.gradGreen, height: "100%", width: `${pct}%`, transition: "width .4s cubic-bezier(.22,1,.36,1)", borderRadius: "0 4px 4px 0", boxShadow: "0 0 8px rgba(30,123,71,.4)" }} />
       </div>
@@ -1036,6 +1049,11 @@ const IMPRESSION_MAP: Record<string, string> = {
                 <Inp label="SpO₂ (%)" type="number" placeholder="98" value={f.spo} onChange={s("spo")} alert={vitalAlerts.spo} />
                 <Inp label="Temperature (°C)" type="number" placeholder="36.6" value={f.temp} onChange={s("temp")} />
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <Inp label="Blood Glucose (mmol/L)" type="number" step="0.1" inputMode="decimal" placeholder="4.5" value={f.bloodGlucose ?? ""} onChange={s("bloodGlucose")} alert={vitalAlerts.bloodGlucose} />
+                </div>
+              </div>
 
               {/* Divider between Vital Signs and Urinalysis */}
               <div aria-hidden style={{ height: 1.5, background: `linear-gradient(to right, transparent, ${C.borderMid || "#CBD5E1"} 15%, ${C.borderMid || "#CBD5E1"} 85%, transparent)`, margin: "24px 0 18px" }} />
@@ -1043,7 +1061,7 @@ const IMPRESSION_MAP: Record<string, string> = {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <ComboSel label="Protein" opts={[0, 1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Protein} onChange={s("Protein")} />
                 <ComboSel label="Leukocytes" opts={[0, 1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Leukocytes} onChange={s("Leukocytes")} />
-                <ComboSel label="Blood" opts={[0 ,1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Blood} onChange={s("Blood")} /> 
+                <ComboSel label='BLOOD("URINE HAEMATURIA")' opts={[0 ,1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Blood} onChange={s("Blood")} /> 
                 <ComboSel label="Nitrite" opts={['Neg','Pos'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.Nitrite} onChange={s("Nitrite")} />   
                 <ComboSel label="Glucose" opts={[0, 1, 2, 3].map((v) => ({ v: String(v), lb: v === 0 ? '0' : `${v}+` }))} value={f.Glucose} onChange={s("Glucose")} />
                 <ComboSel label="SG" opts={['1.000', '1.005', '1.010', '1.015'].map((v) => ({ v: String(v), lb: `${v}` }))} value={f.SG} onChange={s("SG")} />  
@@ -1071,10 +1089,10 @@ const IMPRESSION_MAP: Record<string, string> = {
                   Add clinical notes, trends, or additional context about vital signs
                 </div>
               </div>
-              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.85, color: C.textMid, marginTop: 6, border: `1px solid ${C.border}` }}>
+              <div style={{ background: C.bgDeep, borderRadius: 12, padding: "12px 14px", fontSize: 12, lineHeight: 1.85, color: C.textMid, marginTop: 6, marginBottom: 30, border: `1px solid ${C.border}` }}>
                 <div style={{ fontWeight: 800, marginBottom: 6, color: C.text, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em" }}>SATS 2012 Reference</div>
-                <div><span style={{ color: C.p1, fontWeight: 700 }}>P1 ·</span> BP ≥160/110 · HR &gt;140 or &lt;50 · RR &gt;60 · SpO₂ &lt;85%</div>
-                <div><span style={{ color: C.p2, fontWeight: 700 }}>P2 ·</span> BP 150/100 · HR &gt;120 · RR &gt;30 · SpO₂ &lt;90%</div>
+                <div><span style={{ color: C.p1, fontWeight: 700 }}>P1 ·</span> BP ≥160/110 · HR &gt;140 or &lt;50 · RR &gt;60 · SpO₂ &lt;85% · Blood glucose &lt;3.5</div>
+                <div><span style={{ color: C.p2, fontWeight: 700 }}>P2 ·</span> BP 150/100 · HR &gt;120 · RR &gt;30 · SpO₂ &lt;90% · Blood glucose &gt;7.5</div>
                 <div><span style={{ color: C.p3, fontWeight: 700 }}>P3 ·</span> BP 140/90 · HR &gt;110</div>
                 <div><span style={{ color: C.p4, fontWeight: 700 }}>P4 ·</span> BP 110–139/60–89 · HR 60–110 · RR 16–24</div>
               </div>
@@ -1253,12 +1271,12 @@ const IMPRESSION_MAP: Record<string, string> = {
           }}
         >
           <div
-            className="app-container"
             style={{
               background: C.bg,
               borderRadius: 18,
               padding: "26px 28px",
-              height: "auto",
+              width: "100%",
+              maxWidth: 360,
               textAlign: "center",
               boxShadow: "0 12px 40px rgba(0,0,0,.3)",
               border: `1px solid ${C.border}`,

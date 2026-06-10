@@ -5,12 +5,13 @@ import { resolveConditionName } from "../services/catalogService";
 
 interface ReportsScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   patients: any[];
 }
 
 type ReportType = "summary" | "priority" | "patient" | "shift";
 
-export function ReportsScreen({ onNav, patients }: ReportsScreenProps) {
+export function ReportsScreen({ onNav, onBack, patients }: ReportsScreenProps) {
   const [selected, setSelected] = useState<ReportType | null>(null);
   const [generating, setGenerating] = useState(false);
   const [done, setDone] = useState(false);
@@ -373,7 +374,7 @@ All triage decisions remain responsibility of attending clinician.
     >
       <Hdr
         title="Reports"
-        onBack={() => onNav("welcome")}
+        onBack={onBack ?? (() => onNav("welcome"))}
         gradient={C.gradPurple}
       />
 

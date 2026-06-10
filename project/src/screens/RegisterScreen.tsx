@@ -22,10 +22,11 @@ const IconEyeOff = ({ size = 18, color = "currentColor" }) => (
 
 interface RegisterScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   toast?: { success: (m: string) => void; error: (m: string) => void; info: (m: string) => void; warning: (m: string) => void };
 }
 
-export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
+export function RegisterScreen({ onNav, onBack, toast }: RegisterScreenProps) {
   const [formData, setFormData] = useState({
     title: "Ms",
     firstName: "",
@@ -139,7 +140,7 @@ export function RegisterScreen({ onNav, toast }: RegisterScreenProps) {
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft }}>
-      <Hdr title="Create Account" onBack={() => onNav("splash")} />
+      <Hdr title="Create Account" onBack={onBack ?? (() => onNav("splash"))} />
       <div style={{ padding: "20px 20px 48px" }}>
         <Card s={{ marginBottom: 14 }}>
           <SectionLabel>Personal Details</SectionLabel>

@@ -1,15 +1,18 @@
 import { PatientCardSkeleton } from "../components/Skeletons";
-import { IconChevronRight, IconSearch } from "../components/icons";
+import { IconChevronRight } from "../components/icons";
 import { Btn, Hdr, StatusChip } from "../components/ui";
 import { C, pC } from "../constants/theme";
 import { priorityColor, resolveConditionName } from "../services/catalogService";
-import { fullName, isAssessmentDraft, TOTAL_TRIAGE_SECTIONS } from "../utils/helpers";
+import { fullName, isAssessmentDraft, isSameLocalDay, TOTAL_TRIAGE_SECTIONS } from "../utils/helpers";
 
 import { patientService } from "../services/Patientservice";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+type QueueTab = "today" | "older";
 
 interface PatientsScreenProps {
   onNav: (screen: string, filter?: string | null) => void;
+  onBack?: () => void;
   patients: any[];
   loading?: boolean;
   onOpenPatient: (patient: any) => void;
@@ -22,16 +25,18 @@ interface PatientsScreenProps {
 
 export function PatientsScreen({
   onNav,
+  onBack,
   patients,
   loading,
   onOpenPatient,
   onStartNewTriage,
-  onOpenSearch,
   onResumeDraft,
   onRefreshPatients,
   filter,
 }: PatientsScreenProps) {
   const [discarding, setDiscarding] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<QueueTab>("today");
+  const hasAutoSelectedRef = useRef(false);
 
   // Apply filter if provided
   let filteredPatients = patients;
@@ -40,6 +45,27 @@ export function PatientsScreen({
   } else if (filter === "pending") {
     filteredPatients = patients.filter((p: any) => /Pending|Awaiting/.test(p.status));
   }
+
+  const hasAssessmentDates = patients.some((patient: any) => patient.latestAssessment?.assessedAt || patient.assessedAt);
+  const queuePatients = filteredPatients;
+  const todayQueue = hasAssessmentDates
+    ? queuePatients.filter((patient: any) => isAssessmentDraft(patient) || isSameLocalDay(patient.latestAssessment?.assessedAt ?? patient.assessedAt))
+    : queuePatients;
+  const olderQueue = hasAssessmentDates
+    ? queuePatients.filter((patient: any) => !isAssessmentDraft(patient) && !isSameLocalDay(patient.latestAssessment?.assessedAt ?? patient.assessedAt))
+    : [];
+
+  useEffect(() => {
+    if (loading) return;
+    if (hasAutoSelectedRef.current) return;
+    if (todayQueue.length === 0 && olderQueue.length > 0) {
+      setActiveTab("older");
+    }
+    hasAutoSelectedRef.current = true;
+  }, [loading, todayQueue.length, olderQueue.length]);
+
+  const queueSummary = `${queuePatients.length} patients in queue${hasAssessmentDates ? ` · ${todayQueue.length} today · ${olderQueue.length} older` : ""}`;
+  const visiblePatients = activeTab === "today" ? todayQueue : olderQueue;
 
   const handleDiscardDraft = async (e: any, patient: any) => {
     e?.stopPropagation?.();
@@ -71,26 +97,57 @@ export function PatientsScreen({
 
   return (
     <div className="fade-in" style={{ minHeight: "100dvh", background: C.bgSoft, paddingBottom: 156 }}>
-      <Hdr title="Triage Queue" onBack={() => onNav("welcome")} />
+      <Hdr title="Triage Queue" onBack={onBack ?? (() => onNav("welcome"))} />
 
       <div style={{ padding: "14px 14px 24px" }}>
         {/* Toolbar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 600 }}>
-            {showSkeletons ? "Loading queue…" : `${patients.length} patients triaged today`}
+            {showSkeletons ? "Loading queue…" : queueSummary}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Btn variant="ghost" onClick={onOpenSearch} s={{ padding: "6px 10px", fontSize: 12, borderRadius: 999 }}>
-              <IconSearch size={12} style={{ marginRight: 4 }} /> Search Files
-            </Btn>
-            <StatusChip label="Sort by priority" tone={C.green} />
-          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+          {([
+            { key: "today" as QueueTab, label: "Today", count: todayQueue.length, hint: hasAssessmentDates ? "Includes drafts" : "All triaged items" },
+            { key: "older" as QueueTab, label: "Older", count: olderQueue.length, hint: hasAssessmentDates ? "Earlier triaged items" : "No dated items yet" },
+          ]).map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  border: `1px solid ${isActive ? C.green : C.border}`,
+                  background: isActive ? C.greenL : C.bg,
+                  borderRadius: 14,
+                  padding: "12px 14px",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  boxShadow: isActive ? "0 6px 18px rgba(30,123,71,.12)" : "none",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: isActive ? C.green : C.text }}>{tab.label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: isActive ? C.green : C.textMuted }}>{tab.count}</div>
+                </div>
+                <div style={{ fontSize: 11, color: isActive ? C.green : C.textMuted, marginTop: 4 }}>{tab.hint}</div>
+              </button>
+            );
+          })}
         </div>
 
         {/* Patient list */}
         {showSkeletons
           ? Array.from({ length: 5 }).map((_, i) => <PatientCardSkeleton key={i} delay={i * 0.05} />)
-          : filteredPatients.map((p: any, i: number) => {
+          : visiblePatients.length === 0 ? (
+            <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, color: C.textMuted, fontSize: 13, lineHeight: 1.6 }}>
+              {activeTab === "today"
+                ? "No triaged patients for today yet. Switch to Older to review previous triages."
+                : "No older triage records found for the current filter."}
+            </div>
+          ) : visiblePatients.map((p: any, i: number) => {
               // Shared draft logic: an assessment with all sections complete is
               // never a draft, even if the backend still reports priority 0.
               const isDraft = isAssessmentDraft(p);

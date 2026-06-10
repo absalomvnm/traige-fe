@@ -15,11 +15,11 @@ function trimSlash(url: string): string {
 /** Auth / main backend (auth service, user management) */
 export const AUTH_API_BASE_URL = trimSlash(
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-    "https://d2h3z5kegnj368.cloudfront.net",
+    "https://d1wcu2a5qc2e6g.cloudfront.net",
 );
 
 /** Patient / clinical backend (assessments, triage, catalogs) */
 export const PATIENT_API_BASE_URL = trimSlash(
   (import.meta.env.VITE_PATIENT_API_BASE_URL as string | undefined) ??
-    "https://d3mryws7sox23u.cloudfront.net",
+    "https://d3jfk6d9o8wsur.cloudfront.net",
 );
