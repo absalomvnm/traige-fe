@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fullName } from "../utils/helpers";
+import { patientService } from "../services/Patientservice";
 
 export interface ReviewReminder {
   id: string;           // unique key: `${patientId}_${assessmentId}`
@@ -12,6 +13,10 @@ export interface ReviewReminder {
   isOverdue: boolean;
   dismissed: boolean;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// ─── Parsing helpers ──────────────────────────────────────────────────────────
 
 /** Parse a reassessDue string into milliseconds offset from assessment time */
 function parseDueMs(reassessDue: string): number {
@@ -61,7 +66,6 @@ function remindersEqual(a: ReviewReminder[], b: ReviewReminder[]): boolean {
 
 /** Format time until due */
 export function formatUntilDue(ms: number): string {
-
   if (ms <= 0) return "Due now";
   const totalMin = Math.ceil(ms / 60_000);
   if (totalMin < 60) return `in ${totalMin} min`;
@@ -83,11 +87,13 @@ export function useReviewReminders(
   patients: any[],
   options: UseReviewRemindersOptions = {}
 ) {
-  const { onDue, pollInterval = 30_000, warningMinutes = 5 } = options;
+  const { onDue, pollInterval = 30_000 } = options;
 
   const [reminders, setReminders] = useState<ReviewReminder[]>([]);
-  const firedRef = useRef<Set<string>>(new Set()); // track which reminders have fired
-  const dismissedRef = useRef<Set<string>>(new Set()); // track dismissed
+  const [dismissalRevision, setDismissalRevision] = useState(0);
+  const firedRef = useRef<Set<string>>(new Set()); // track which reminders have fired onDue
+  const dismissedRef = useRef<Set<string>>(new Set());
+  const dismissalsLoadedRef = useRef(false);
 
   // Keep the latest props/callbacks in refs so the polling effect can read them
   // without being part of its dependency array. This prevents an infinite
@@ -97,16 +103,49 @@ export function useReviewReminders(
   patientsRef.current = patients;
   const onDueRef = useRef(onDue);
   onDueRef.current = onDue;
-  const warningMinutesRef = useRef(warningMinutes);
-  warningMinutesRef.current = warningMinutes;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    patientService
+      .getDismissedReviewReminders()
+      .then((records) => {
+        if (cancelled) return;
+        dismissedRef.current = new Set(records.map((record) => record.reminderKey));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        dismissedRef.current = new Set();
+      })
+      .finally(() => {
+        if (cancelled) return;
+        dismissalsLoadedRef.current = true;
+        setDismissalRevision((value) => value + 1);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function buildReminderKey(patientId: string | number, assessmentId: string | number, windowIndex: number): string {
+    return `${patientId}_${assessmentId}_${windowIndex}`;
+  }
+
+  function getReminderWindowIndex(now: number, dueAtMs: number): number {
+    const overdueMs = Math.max(0, now - dueAtMs);
+    return Math.floor(overdueMs / DAY_MS);
+  }
 
   const computeReminders = useCallback(() => {
+    if (!dismissalsLoadedRef.current) {
+      return;
+    }
+
     const patients = patientsRef.current;
     const onDue = onDueRef.current;
-    const warningMinutes = warningMinutesRef.current;
 
     const now = Date.now();
-    const warningMs = warningMinutes * 60_000;
 
     const next: ReviewReminder[] = [];
 
@@ -117,6 +156,7 @@ export function useReviewReminders(
       const assessedAt = p.latestAssessment?.assessedAt;
       const reassessDue = p.reassessDue || p.latestAssessment?.reassessDue;
       if (!assessedAt || !reassessDue || reassessDue === "Immediate") continue;
+      if (p.latestAssessment?.acknowledged) continue;
 
       const assessedMs = new Date(assessedAt).getTime();
       if (isNaN(assessedMs)) continue;
@@ -124,14 +164,13 @@ export function useReviewReminders(
       const dueMs = parseDueMs(reassessDue);
       const dueAt = new Date(assessedMs + dueMs);
       const dueAtMs = dueAt.getTime();
-      const diffMs = now - dueAtMs; // positive = overdue, negative = not yet due
-      const isOverdue = diffMs >= 0;
-      const isWarning = !isOverdue && (dueAtMs - now) <= warningMs;
+      const isOverdue = now >= dueAtMs;
+      if (!isOverdue) continue;
 
-      // Only include if overdue OR within warning window
-      if (!isOverdue && !isWarning) continue;
+      const reminderWindowIndex = getReminderWindowIndex(now, dueAtMs);
 
-      const key = `${p.id}_${p.assessmentId ?? p.latestAssessment?.id ?? "x"}`;
+      const assessmentId = p.assessmentId ?? p.latestAssessment?.id ?? "x";
+      const key = buildReminderKey(p.id, assessmentId, reminderWindowIndex);
       const dismissed = dismissedRef.current.has(key);
 
       next.push({
@@ -141,7 +180,7 @@ export function useReviewReminders(
         priority: p.p ?? p.latestAssessment?.priority ?? 4,
         reassessDue,
         dueAt,
-        overdueBy: Math.max(0, diffMs),
+        overdueBy: Math.max(0, now - dueAtMs),
         isOverdue,
         dismissed,
       });
@@ -156,7 +195,7 @@ export function useReviewReminders(
           priority: p.p ?? p.latestAssessment?.priority ?? 4,
           reassessDue,
           dueAt,
-          overdueBy: Math.max(0, diffMs),
+          overdueBy: Math.max(0, now - dueAtMs),
           isOverdue: true,
           dismissed: false,
         });
@@ -183,22 +222,29 @@ export function useReviewReminders(
     computeReminders();
     const id = setInterval(computeReminders, pollInterval);
     return () => clearInterval(id);
-  }, [computeReminders, pollInterval, patients]);
+  }, [computeReminders, pollInterval, patients, dismissalRevision]);
 
 
   const dismiss = useCallback((reminderId: string) => {
     dismissedRef.current.add(reminderId);
+    setDismissalRevision((value) => value + 1);
+    void patientService.dismissReviewReminder({ reminderKey: reminderId }).catch((err) => {
+      console.warn("[REMINDERS] Failed to persist dismissal:", err);
+    });
     setReminders((prev) =>
       prev.map((r) => (r.id === reminderId ? { ...r, dismissed: true } : r))
     );
   }, []);
 
   const dismissAll = useCallback(() => {
-    setReminders((prev) => {
-      prev.forEach((r) => dismissedRef.current.add(r.id));
-      return prev.map((r) => ({ ...r, dismissed: true }));
+    const ids = new Set(reminders.map((r) => r.id));
+    ids.forEach((id) => dismissedRef.current.add(id));
+    setDismissalRevision((value) => value + 1);
+    void patientService.dismissReviewReminders(Array.from(ids)).catch((err) => {
+      console.warn("[REMINDERS] Failed to persist batch dismissal:", err);
     });
-  }, []);
+    setReminders((prev) => prev.map((r) => ({ ...r, dismissed: true })));
+  }, [reminders]);
 
   const activeReminders = reminders.filter((r) => !r.dismissed);
   const overdueCount = activeReminders.filter((r) => r.isOverdue).length;

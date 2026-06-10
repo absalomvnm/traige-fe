@@ -10,12 +10,12 @@ export default defineConfig({
     proxy: {
       // Auth service
       '/api': {
-        target: 'http://localhost:8083',//'https://d2h3z5kegnj368.cloudfront.net',
+        target: 'https://d1wcu2a5qc2e6g.cloudfront.net',//'http://localhost:8083',
         changeOrigin: true,
       },
       // Patient management service
       '/patient-api': {
-        target: 'http://localhost:8081',
+        target: 'https://d3jfk6d9o8wsur.cloudfront.net',//'http://localhost:8081',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/patient-api/, ''),
       },

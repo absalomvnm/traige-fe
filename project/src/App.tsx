@@ -62,6 +62,7 @@ export default function App() {
   const [liveAlertCount, setLiveAlertCount] = useState<number | null>(null);
 
   const isAuthenticated = Boolean(authToken);
+  const screenHistoryRef = useRef<{ screen: string; filter: string | null }[]>([]);
 
   const { toasts, toast } = useToast();
 
@@ -159,6 +160,7 @@ export default function App() {
     }
 
     catalogService.load().catch(() => {});
+    screenHistoryRef.current = [];
     setScreen("welcome");
   }
 
@@ -185,6 +187,7 @@ export default function App() {
         setCurrentUser(user);
         // Load catalogs after session restore.
         catalogService.load().catch(() => {});
+        screenHistoryRef.current = [];
         setScreen("welcome");
         console.log("[AUTH] Session restored successfully", { user: user?.email, role: user?.role });
       } catch (error) {
@@ -371,15 +374,45 @@ export default function App() {
       setMoreOpen(false);
       return;
     }
+
+    const nextFilter = s === "patients" ? (filter ?? null) : null;
+    if (screen === s && (s !== "patients" || (patientsFilter ?? null) === nextFilter)) {
+      setMoreOpen(false);
+      return;
+    }
+
     console.log("[NAV] Navigating to", { screen: s, filter });
+    screenHistoryRef.current.push({ screen, filter: patientsFilter ?? null });
     setScreen(s);
     if (s === "patients") {
-      setPatientsFilter(filter ?? null);
+      setPatientsFilter(nextFilter);
     } else {
       setPatientsFilter(null);
     }
     setMoreOpen(false);
   };
+
+  function goBack() {
+    const previous = screenHistoryRef.current.pop();
+
+    if (previous) {
+      if (!isAuthenticated && protectedScreens.has(previous.screen)) {
+        setPatientsFilter(null);
+        setMoreOpen(false);
+        setScreen("splash");
+        return;
+      }
+
+      setScreen(previous.screen);
+      setPatientsFilter(previous.screen === "patients" ? previous.filter : null);
+      setMoreOpen(false);
+      return;
+    }
+
+    setPatientsFilter(null);
+    setMoreOpen(false);
+    setScreen(isAuthenticated ? "welcome" : "splash");
+  }
 
   // ─────────────────────────────
   // LOGOUT (NEW)
@@ -388,6 +421,7 @@ export default function App() {
     console.log("🚪 [AUTH] User logged out", { user: currentUser?.email });
     localStorage.removeItem(AUTH_TOKEN_KEY);
     catalogService.reset();
+    screenHistoryRef.current = [];
 
     setAuthToken(null);
     setCurrentUser(null);
@@ -451,6 +485,20 @@ export default function App() {
         ]));
 
       
+        const bloodGlucoseValue = vitals.blood_glucose != null
+          ? Number(vitals.blood_glucose)
+          : vitals.bloodGlucose != null
+            ? Number(vitals.bloodGlucose)
+            : NaN;
+        const glucosePriority = Number.isNaN(bloodGlucoseValue)
+          ? 4
+          : bloodGlucoseValue < 3.5
+            ? 1
+            : bloodGlucoseValue > 7.5
+              ? 2
+              : 4;
+        const effectivePriority = Math.min(Number(a.priority ?? patient.p ?? 4), glucosePriority);
+
         const enriched = {
           ...patient,
           assessmentId: a.id ?? patient.assessmentId,
@@ -459,8 +507,8 @@ export default function App() {
           // a stale sign/symptom label (e.g. "Proteinuria 2+") instead of the
           // resolved obstetric condition (e.g. "Gestational Hypertension").
           cond: resolveConditionName({ latestAssessment: a }) || patient.cond || "General review",
-          p: a.priority ?? patient.p,
-          status: a.status ?? patient.status,
+          p: effectivePriority,
+          status: effectivePriority <= 2 ? "Awaiting urgent review" : (a.status ?? patient.status),
           location: a.location ?? patient.location,
           outcome: a.outcome ?? patient.outcome,
           outcomeNotes: a.outcomeNotes ?? patient.outcomeNotes,
@@ -471,6 +519,7 @@ export default function App() {
           hr: vitals.heart_rate != null ? String(vitals.heart_rate) : patient.hr,
           rr: vitals.respiration_rate != null ? String(vitals.respiration_rate) : patient.rr,
           spo: vitals.spo2 != null ? String(vitals.spo2) : patient.spo,
+          bloodGlucose: vitals.blood_glucose != null ? String(vitals.blood_glucose) : patient.bloodGlucose,
           temp: vitals.temp != null
             ? String(vitals.temp)
             : (vitals.temperature_celsius != null ? String(vitals.temperature_celsius) : patient.temp),
@@ -626,7 +675,7 @@ export default function App() {
   // ─────────────────────────────
   const screens: Record<string, any> = {
     splash: <SplashScreen onNav={nav} onAuthSuccess={handleAuthSuccess} />,
-    register: <RegisterScreen onNav={nav} toast={toast} />,
+    register: <RegisterScreen onNav={nav} onBack={goBack} toast={toast} />,
     "forgot-password": <ForgotPasswordScreen onNav={nav} toast={toast} />,
     "reset-password": <ResetPasswordScreen onNav={nav} resetToken={resetToken || ""} toast={toast} />,
 
@@ -649,6 +698,7 @@ export default function App() {
       <TriageScreen
         key={triageVersion}
         onNav={nav}
+        onBack={goBack}
         onResult={(assessment: any) => setResult(assessment)}
         initialData={triageDraft}
         currentUser={currentUser}
@@ -659,6 +709,7 @@ export default function App() {
     result: (
       <ResultScreen
         onNav={nav}
+        onBack={goBack}
         result={result}
         onSaveResult={saveResultToPatients}
         onEditAssessment={() => startRetriage(result)}
@@ -668,6 +719,7 @@ export default function App() {
     patients: (
       <PatientsScreen
         onNav={nav}
+        onBack={goBack}
         patients={patients}
         loading={patientsLoading}
         onOpenPatient={openPatient}
@@ -685,6 +737,7 @@ export default function App() {
       <PatientDetailsScreen
         key={selectedPatient?.id || "empty"}
         onNav={nav}
+        onBack={goBack}
         patient={selectedPatient}
         onUpdatePatient={updatePatient}
         onRetriage={startRetriage}
@@ -696,6 +749,7 @@ export default function App() {
     alerts: (
       <AlertsScreen
         onNav={nav}
+        onBack={goBack}
         patients={patients}
         onUpdatePatient={updatePatient}
         onOpenPatient={openPatient}
@@ -703,9 +757,9 @@ export default function App() {
       />
     ),
 
-    reports: <ReportsScreen onNav={nav} patients={patients} />,
-    about: <AboutScreen onNav={nav} />,
-    profile: <ProfileScreen onNav={nav} currentUser={currentUser} onLogout={logout} onUpdateUser={setCurrentUser} />,
+    reports: <ReportsScreen onNav={nav} onBack={goBack} patients={patients} />,
+    about: <AboutScreen onNav={nav} onBack={goBack} />,
+    profile: <ProfileScreen onNav={nav} onBack={goBack} currentUser={currentUser} onLogout={logout} onUpdateUser={setCurrentUser} />,
   };
 
   const showsBottomNav = [
@@ -749,7 +803,13 @@ export default function App() {
       }}
     >
       {/* CONTENT */}
-      <div style={{ height: "100%", overflowY: "auto" }}>
+      <div
+        style={{
+          height: "100%",
+          overflowY: "auto",
+          paddingBottom: showsBottomNav ? "calc(72px + env(safe-area-inset-bottom, 0px))" : 0,
+        }}
+      >
         {screens[screen] || (isAuthenticated ? screens.welcome : screens.splash)}
       </div>
 

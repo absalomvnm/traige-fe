@@ -164,6 +164,7 @@ export interface Vitals {
   heart_rate?: number | null;
   respiration_rate?: number | null;
   spo2?: number | null;
+  blood_glucose?: number | null;
   /** Body temperature in °C (spec field name: `temp`). */
   temp?: number | null;
   pregnant?: boolean;
@@ -208,7 +209,7 @@ export interface CreateAssessmentPayload {
   foetalMonitoring?: FoetalMonitoring;
   vaginalExam?: VaginalExam;
   riskFactors?: RiskFactors;
-  urinaryAnalysis?: { protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string };
+  urinaryAnalysis?: { protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string };
 }
 
 export interface ChecklistItem {
@@ -239,6 +240,15 @@ export interface AssessmentAlert {
   acknowledgedAt?: string | null;
   resolved?: boolean;
   resolvedAt?: string | null;
+}
+
+export interface ReminderDismissal {
+  id: number;
+  reminderKey: string;
+  assessmentId?: number | null;
+  patientId?: number | null;
+  dismissedByUserId?: number | null;
+  dismissedAt?: string | null;
 }
 
 export interface CreateAlertPayload {
@@ -830,15 +840,15 @@ export const patientService = {
     }),
 
   /** POST /assessments/{id}/urinary-analysis — fire on Step 2 urinalysis entry */
-  submitUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
+  submitUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
     request<SectionResponse>("POST", `/assessments/${assessmentId}/urinary-analysis`, payload),
 
   /** GET /assessments/{id}/urinary-analysis — load existing urinalysis for pre-population */
-  getUrinaryAnalysis: (assessmentId: number): Promise<{ urinaryAnalysis: { protein?: string; leukocytes?: string;  blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } }> =>
+  getUrinaryAnalysis: (assessmentId: number): Promise<{ urinaryAnalysis: { protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } }> =>
     request("GET", `/assessments/${assessmentId}/urinary-analysis`),
 
   /** PUT /assessments/{id}/urinary-analysis — update existing urinalysis on re-triage */
-  updateUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
+  updateUrinaryAnalysis: (assessmentId: number, payload: { protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string }): Promise<SectionResponse> =>
     request<SectionResponse>("PUT", `/assessments/${assessmentId}/urinary-analysis`, payload),
 
   /** POST /assessments/foetal — fire on Step 3 foetal monitoring entry */
@@ -863,7 +873,7 @@ export const patientService = {
 
   /** POST /assessments/urinary-analysis — inline section submission with rule evaluation (no assessment id in path) */
   submitInlineUrinaryAnalysis: (
-    payload: { patientId: number; userId?: number; protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string },
+    payload: { patientId: number; userId?: number; protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string },
   ): Promise<SectionResponse> =>
     request<SectionResponse>("POST", "/assessments/urinary-analysis", payload),
 
@@ -896,6 +906,25 @@ export const patientService = {
   /** DELETE /assessment-alerts/:id */
   deleteAlert: (id: number): Promise<void> =>
     request<void>("DELETE", `/assessment-alerts/${id}`),
+
+  // ── Reassessment Reminders ──────────────────────────────────────────────
+
+  /** GET /assessment-reminders/dismissals */
+  getDismissedReviewReminders: (): Promise<ReminderDismissal[]> =>
+    request<ReminderDismissal[]>("GET", "/assessment-reminders/dismissals"),
+
+  /** POST /assessment-reminders/dismiss */
+  dismissReviewReminder: (payload: {
+    reminderKey: string;
+    assessmentId?: number | null;
+    patientId?: number | null;
+    dismissedByUserId?: number | null;
+  }): Promise<ReminderDismissal> =>
+    request<ReminderDismissal>("POST", "/assessment-reminders/dismiss", payload),
+
+  /** POST /assessment-reminders/dismiss-batch */
+  dismissReviewReminders: (reminderKeys: string[]): Promise<ReminderDismissal[]> =>
+    request<ReminderDismissal[]>("POST", "/assessment-reminders/dismiss-batch", reminderKeys),
 
   // ── Assessment Conditions ─────────────────────────────────────────────────
 

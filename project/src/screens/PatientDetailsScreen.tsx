@@ -18,6 +18,7 @@ import { getRealtimeVitalAlerts } from "../utils/triage";
 
 interface PatientDetailsScreenProps {
   onNav: (screen: string) => void;
+  onBack?: () => void;
   patient: any;
   onUpdatePatient: (patient: any | ((prev: any) => any)) => void;
   onRetriage: (patient: any) => void;
@@ -25,13 +26,13 @@ interface PatientDetailsScreenProps {
   toast?: { success: (m: string) => void; error: (m: string) => void; info: (m: string) => void; warning: (m: string) => void };
 }
 
-export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetriage, currentUser, toast }: PatientDetailsScreenProps) {
+export function PatientDetailsScreen({ onNav, onBack, patient, onUpdatePatient, onRetriage, currentUser, toast }: PatientDetailsScreenProps) {
   const [ctgComment, setCtgComment] = useState("");
   const [checklistApiItems, setChecklistApiItems] = useState<Array<{id: number; item: string; completed: boolean; stepOrder?: number}>>([]);
   const [showProcedures, setShowProcedures] = useState(false);
   const [procedures, setProcedures] = useState<ManagementProcedure[]>([]);
   const [proceduresLoading, setProceduresLoading] = useState(false);
-  const [urinalysis, setUrinalysis] = useState<{ protein?: string; leukocytes?: string; blood?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } | null>(null);
+  const [urinalysis, setUrinalysis] = useState<{ protein?: string; leukocytes?: string; urine_haematuria?: string; blood?: string; haematuria?: string; nitrite?: string; glucose?: string; sg?: string; bilirubin?: string; ph?: string } | null>(null);
   const [urinalysisLoading, setUrinalysisLoading] = useState(true);
   const [checklistLoading, setChecklistLoading] = useState(true);
   const [ctgScansLoading, setCtgScansLoading] = useState(true);
@@ -376,7 +377,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
       <div style={{ background: pGrd(p), padding: "24px 20px 60px", position: "relative", overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,.2)" }}>
         <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
-          <button onClick={() => onNav("patients")} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
+          <button onClick={onBack ?? (() => onNav("patients"))} className="btn-press" style={{ border: "none", background: "rgba(255,255,255,.18)", backdropFilter: "blur(8px)", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 18 }}><IconArrowLeft size={18} color="white" /></button>
           <span style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,.9)" }}>Patient Details</span>
         </div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>{isDraft ? "Status" : "Priority"}</div>
@@ -498,6 +499,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               hr: patient.hr === "—" ? "" : patient.hr,
               rr: patient.rr === "—" ? "" : patient.rr,
               spo: patient.spo === "—" ? "" : patient.spo,
+              bloodGlucose: patient.bloodGlucose === "—" ? "" : patient.bloodGlucose,
               fhr: patient.fhr === "—" ? "" : patient.fhr,
               cx: patient.cx === "—" ? "" : patient.cx,
             });
@@ -509,6 +511,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
               { k: "HR", v: hr, u: "bpm", alert: alerts.hr },
               { k: "RR", v: rr, u: "/min", alert: alerts.rr },
               { k: "SpO₂", v: spo, u: "%", alert: alerts.spo },
+              { k: "Blood Glucose", v: patient.bloodGlucose ?? patient.blood_glucose ?? "—", u: "mmol/L", alert: alerts.bloodGlucose },
               { k: "FHR", v: fhr, u: "bpm", alert: alerts.fhr },
               { k: "Cervix", v: cx, u: "cm", alert: alerts.cx },
             ];
@@ -568,13 +571,24 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
           <Card className="fade-up" s={{ marginBottom: 12, animationDelay: ".055s" }}>
             <SectionLabel mb={12}>Urinalysis</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {(["Protein", "Leukocytes", "Blood", "Nitrite", "Glucose", "SG", "Bilirubin", "ph"] as const).map(key => {
-                const val = urinalysis[key.toLowerCase() as keyof typeof urinalysis];
-                console.log(`[URINALYSIS] ${key}:`, val);
+              {([
+                ["Protein", "protein"],
+                ["Leukocytes", "leukocytes"],
+                ['BLOOD("URINE HAEMATURIA")', "urine_haematuria"],
+                ["Nitrite", "nitrite"],
+                ["Glucose", "glucose"],
+                ["SG", "sg"],
+                ["Bilirubin", "bilirubin"],
+                ["ph", "ph"],
+              ] as const).map(([label, key]) => {
+                const val = key === "urine_haematuria"
+                  ? (urinalysis.urine_haematuria ?? urinalysis.haematuria ?? urinalysis.blood)
+                  : urinalysis[key as keyof typeof urinalysis];
+                console.log(`[URINALYSIS] ${label}:`, val);
                 const absent = !val || val === "none";
                 return (
-                  <div key={key} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${absent ? C.border : "#D8D365"}` }}>
-                    <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{key}</div>
+                  <div key={label} style={{ background: C.bgDeep, borderRadius: 12, padding: "11px 12px", border: `1px solid ${absent ? C.border : "#D8D365"}` }}>
+                    <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700 }}>{label}</div>
                     <div style={{ fontSize: 17, fontWeight: 900, color: absent ? C.textLight : "#5B5A0D", marginTop: 2 }}>{absent ? "None" : val}</div>
                   </div>
                 );
@@ -1150,7 +1164,7 @@ export function PatientDetailsScreen({ onNav, patient, onUpdatePatient, onRetria
 
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 50 }}>
           <div className="app-container" style={{ background: C.bg, borderTop: `1px solid ${C.border}`, padding: "14px 16px", display: "flex", gap: 10, boxShadow: "0 -4px 20px rgba(0,0,0,.08)", height: "auto" }}>
-        <Btn variant="ghost" onClick={() => onNav("patients")} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>
+        <Btn variant="ghost" onClick={onBack ?? (() => onNav("patients"))} s={{ flex: 1, padding: "13px 0" }}><IconArrowLeft size={14} style={{ marginRight: 4 }} /> Back</Btn>
           <Btn onClick={() => onNav("welcome")} s={{ flex: 2, padding: "13px 0" }}>Dashboard</Btn>
           </div>
         </div>
